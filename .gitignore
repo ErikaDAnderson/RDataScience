@@ -34,3 +34,35 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+# recommended from TTT workshop
+*.aux
+*.bbl
+*.blg
+*~*
+*.dvi
+*.log
+*.lot
+*.pdf
+*.ps
+*.toc
+# *.txt
+*.out
+*.snm
+*.nav
+*.synctex.gz*
+knitr-cache
+.RData
+.RHistory
+hake-example.tex
+
+myNotes.*
+csasdown-test/
+
+# propriatary files or personal files to avoid unloading
+Input/
+Output/
+OldCode.R 
+OldCode.r 
+
+
