@@ -1,0 +1,70 @@
+---
+title: "3 Data Visualization"
+author: "Erika Anderson"
+date: "March 15, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# this is only necessary if you haven't used tidyverse ever
+# install.packages("tidyverse")
+
+# load library
+library(tidyverse)
+```
+
+### R Visualization Exercises
+
+ See section [3 Data Visualisation](https://r4ds.had.co.nz/data-visualisation.html#exercises-4) for text and exercises. I found some answers [online](https://rpubs.com/phi/271994).
+ 
+##3.2.4 Exercises
+
+ # 1. Run 
+```{r 3.2.4.1}
+ggplot(data = mpg)
+
+```
+      
+      What do you see? 
+       - Empty plot
+
+ # 2. mpg dataset
+```{r 3.2.4.2}
+# show data set
+mpg
+
+```
+      
+      Use ?mpg for more information
+    
+      How many rows are in mpg? 
+        - 234 
+      How many columns? 
+      - 11
+      mpg
+      
+ # 3. What does the drv variable describe? Read the help for ?mpg to find out.
+
+      drive train: f = front-wheel drive, r = rear wheel drive, 4 = 4wd
+
+ # 4. Make a scatterplot of hwy vs cyl.
+ 
+```{r 3.2.4.4}
+
+      ggplot(data = mpg) +
+        geom_point(aes(x = hwy, y = cyl))
+
+```
+ 
+ # 5. What happens if you make a scatterplot of class vs drv? 
+```{r 3.2.4.5}
+      ggplot(data = mpg) +
+        geom_point(aes(x = class, y = drv))
+
+```
+ 
+ Why is the plot not useful?
+   - categorical variables so need different plot type
+
