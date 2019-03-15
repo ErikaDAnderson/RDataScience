@@ -38,6 +38,9 @@ library(tidyverse)
       
       ggplot(data = mpg) +
         geom_point(aes(x = hwy, y = cyl))
+      
+      ggplot(mpg) +
+        geom_point(aes(hwy, cyl))
 
  # 5. What happens if you make a scatterplot of class vs drv? Why is the plot not useful?
       
@@ -52,6 +55,9 @@ library(tidyverse)
  # 1. What’s gone wrong with this code? Why are the points not blue?
  ggplot(data = mpg) + 
    geom_point(mapping = aes(x = displ, y = hwy, color = "blue"))
+      
+      ggplot(data = mpg) + 
+        geom_point(mapping = aes(x = displ, y = hwy), color = "blue")
       # - within aes brackets
 
  # 2. Which variables in mpg are categorical?
@@ -59,6 +65,8 @@ library(tidyverse)
  # How can you see this information when you run mpg?
       str(mpg)
       head(mpg)
+      mpg
+      
       # categorical: manufactuer, model, cyl, trans, drv, fl, class
       # continuous: displ, year, cty, hwy
       
@@ -226,7 +234,7 @@ library(tidyverse)
   
   ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
     geom_point(mapping = aes(color=drv)) + 
-    geom_point(shape = 21, color = "white", stroke = 5)
+    geom_point(shape = 21, stroke = 5, color = "white")
   
   
 ##############################
@@ -238,6 +246,14 @@ library(tidyverse)
   
   ggplot(data = diamonds) + 
     geom_bar(aes(cut))
+  
+  ggplot(data = diamonds) + 
+    geom_pointrange( mapping = aes(x = cut, y = depth),
+                     fun.ymin = min,
+                     fun.ymax = max,
+                     fun.y = median,
+                     stat = "summary") +
+    theme_bw()
     
   # 2. What does geom_col() do? How is it different to geom_bar()?
   
@@ -251,8 +267,8 @@ library(tidyverse)
   
     # geom_bar stat_count
     # geom_histogram stat_bin
-    # geom_abline 
     # geom_smooth stat_smooth
+    # 
     
   # 4. What variables does stat_smooth() compute? 
   
@@ -300,12 +316,15 @@ library(tidyverse)
   # geom_jitter(width = ?, height = ?)
   
   ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
-    geom_jitter(width = 0.5, height = 0.5)
+    geom_jitter(width = 0.5)
     
   # 3.Compare and contrast geom_jitter() with geom_count().
   
   ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
     geom_count()
+  
+  ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+    geom_point(color = alpha("red", 0.5))
   
   # geom_count makes the size of the point proportional to the number
   # geom_jitter moves the points randomly to show more overlapping points
@@ -346,8 +365,15 @@ library(tidyverse)
   ?coord_quickmap
   # type of coord_map that is quick approximation that does preserve straight lines
   # works best for smaller areas closer to the equator.
+  
+  nz <- map_data("nz")
     
-  # 4. What does the plot below tell you about the relationship between city and highway mpg? 
+  ggplot(nz, aes(long, lat, group = group)) +
+    geom_polygon(fill = "white", colour = "black") +
+    coord_quickmap()
+  
+  
+  # 4. What does the plot below tell you about the relationship between cty and highway mpg? 
   
   # the number of cylinders increases the miles per gallon
   
