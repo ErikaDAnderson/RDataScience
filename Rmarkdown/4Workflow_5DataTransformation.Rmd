@@ -1,0 +1,30 @@
+---
+title: "4 Workflow & 5 Data Transformation"
+author: "Erika Anderson"
+date: "March 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse)
+```
+
+### R Workflow Exercises
+
+ See section [4 Workflow: basics](https://r4ds.had.co.nz/workflow-basics.html) for text and exercises.
+ 
+## Exercises
+
+ # 1. Run 
+```{r 3.2.4.1}
+ggplot(data = mpg)
+
+```
+
+### R Data Transformation Exercises
+
+ See section [5 Data Tranformation](https://r4ds.had.co.nz/transform.html) for text and exercises. I found some answers [online](https://rpubs.com/phi/272138).
+ 
