@@ -293,8 +293,8 @@ library(tidyverse)
     geom_bar(mapping = aes(x = cut, y = ..prop..,   group = 1))
   
   ggplot(data = diamonds) + 
-    geom_bar(mapping = aes(x = cut, fill = color, y = ..prop.., group = 1)) 
-  # we lose color since it is one group now
+    geom_bar(mapping = aes(x = cut, fill = color, y = ..prop.., group = color)) 
+
   
   ?geom_bar
   ??"ggplot2-specs"
@@ -383,3 +383,13 @@ library(tidyverse)
     geom_point() + 
     geom_abline() + # fits a line diagonal line to the data based on slope and intercept
     coord_fixed() # forces ratio of y units to x units
+    
+  ##############################################################
+    
+    # random question about why their are dots in the following code?
+    
+    library(tidyverse)
+    
+    ggplot(data = diamonds) + 
+      geom_bar(mapping = aes(x = cut, y = ..prop.., group = 1))
+    
