@@ -277,3 +277,85 @@ Both functions are used to offset points within categories to reduce overplottin
 geom_quairandom uses a van der Corput sequence or Tukey texturing (Tukey and Tukey "Strips displaying empirical distributions: I. textured dot strips") to space the dots to avoid overplotting.
 geom_beeswarm uses the beeswarm library to do point-size based offset. Looking at the example graphs it looks like geom_jitter is more random, geom_quasirandom is more like a violin plot, and geom_beeswarm is a tighter violin plot.
 
+
+# 7.5.2.1 Exercises
+
+1. How could you rescale the count dataset above to more clearly show the distribution of cut within colour, or colour within cut?
+
+```{r}
+
+ggplot(data = diamonds) +
+  geom_count(mapping = aes(x = cut, y = color)) +
+  ggtitle("Original geom_count")
+
+ggplot(data = diamonds) +
+  geom_count(mapping = aes(x = cut, y = color)) +
+  scale_size_area() +
+  ggtitle("Rescaled geom_count")
+
+# using geom_tile
+  diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = n)) +
+    ggtitle("Original geom_tile") 
+  
+  # rescale using viridis   
+  diamonds %>% 
+  count(color, cut) %>%  
+  ggplot(mapping = aes(x = color, y = cut)) +
+    geom_tile(mapping = aes(fill = n)) +
+    ggtitle("Viridis geom_tile") +
+    scale_fill_viridis_c()
+  
+  
+  
+
+```
+
+Another way would be to transform the data to emphasize differences.
+
+
+2. Use geom_tile() together with dplyr to explore how average flight delays vary by destination and month of year. What makes the plot difficult to read? How could you improve it?
+
+```{r}
+
+nycflights13::flights %>%
+  group_by(dest, month) %>%
+  count(dest, month, dep_delay) %>%  
+  ggplot(mapping = aes(x = factor(month), y = dest)) +
+    geom_tile(mapping = aes(fill = n)) +
+    ggtitle("Departure delay by month and destination") +
+    scale_fill_viridis_c() +
+  labs(x = "Month", y = "Destination")
+
+
+```
+The graph has too much information to be useful as there are too many destinations and months. It does seem like delays are influenced by destination and month (ie. December). I would explore a few graphs from example destinations, or use all destinations for each month. 
+
+3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
+
+It is usually better to put the group with the lower number of categories on the x-axis and color has less categories than cut.
+
+# 7.5.2.2 Exercises
+
+1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
+
+2. Visualise the distribution of carat, partitioned by price.
+
+3. How does the price distribution of very large diamonds compare to small diamonds? Is it as you expect, or does it surprise you?
+
+4. Combine two of the techniques you’ve learned to visualise the combined distribution of cut, carat, and price.
+
+5. Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately. Why is a scatterplot a better display than a binned plot for this case?
+
+```{r}
+
+ggplot(data = diamonds) +
+  geom_point(mapping = aes(x = x, y = y)) +
+  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11))
+
+```
+
+
+
