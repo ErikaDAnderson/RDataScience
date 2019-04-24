@@ -341,6 +341,24 @@ It is usually better to put the group with the lower number of categories on the
 
 1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
 
+cut_width needs the width specified, whereas cut_number needs the number within a bin specified. Either way the lines or color should be kept under 6 values or the graph gets too busy.
+
+
+```{r}
+
+ggplot(diamonds, aes(x = price, color = cut_width(carat, 1, boundary = 0))) + 
+  geom_freqpoly(binwidth = 200) +
+  ggtitle("geom_freqpoly with cut_width") +
+  labs(color = "carat")
+
+ggplot(diamonds, aes(price, color = cut_number(carat, 5))) + 
+  geom_freqpoly(binwidth = 200) +
+  ggtitle("geom_freqpoly with cut_number") +
+    labs(color = "carat")
+
+```
+
+
 2. Visualise the distribution of carat, partitioned by price.
 
 3. How does the price distribution of very large diamonds compare to small diamonds? Is it as you expect, or does it surprise you?
