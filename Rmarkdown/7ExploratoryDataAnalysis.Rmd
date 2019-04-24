@@ -78,7 +78,7 @@ diammonds99 <- diamonds %>%
   
 ```
 
-There are 23 0.99 carat diamonds and 1558 carat diamonds. This is likely driven by marketing.
+There are 23 - 0.99 carat diamonds and 1558- 1 carat diamonds. This is likely driven by marketing.
 
 4. Compare and contrast coord_cartesian() vs xlim() or ylim() when zooming in on a histogram. What happens if you leave binwidth unset? What happens if you try and zoom so only half a bar shows?
 
@@ -101,7 +101,7 @@ ggplot(diamonds, aes(x = x)) +
 ```
 
 
-Using the xlim function, there are warnings given about omiting observations. There are no warnings with coord_cartesian funtion. You need to choose a binwidth to omit the bin width warning for both functions. The coord_cartesian zooms into a section of the graph, whereas the xlim function drops all observations outside the limits.
+Using the xlim function, there are warnings given about omitting observations. There are no warnings with coord_cartesian function. You need to choose a binwidth to omit the bin width warning for both functions. The coord_cartesian zooms into a section of the graph, whereas the xlim function drops all observations outside the limits.
 
 
 # 7.4.1 Exercises
@@ -124,7 +124,7 @@ ggplot(diamonds2, aes(x = y)) +
 
 ```
 
-There doesn't appear to be a large difference between geom_histogram and geom_bar because both functions give a warning of missing values. This is different with categorical data when NAs become a seperate category.
+There doesn't appear to be a large difference between geom_histogram and geom_bar because both functions give a warning of missing values. This is different with categorical data when NAs become a separate category.
 
 2. What does na.rm = TRUE do in mean() and sum()?
 
@@ -134,4 +134,146 @@ In the sum function, na.rm = TRUE is logical. Should missing values (including N
 
 # 7.5.1.1 Exercises
 
+1. Use what you’ve learned to improve the visualisation of the departure times of cancelled vs. non-cancelled flights.
+
+```{r}
+# load dataset
+library(nycflights13)
+
+flights %>% 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60) %>%
+  
+  ggplot(mapping = aes(x = cancelled,  y =sched_dep_time)) + 
+    geom_boxplot()
+
+
+```
+
+
+More flights are cancelled later in the day.
+
+
+2. What variable in the diamonds dataset is most important for predicting the price of a diamond? How is that variable correlated with cut? Why does the combination of those two relationships lead to lower quality diamonds being more expensive?
+
+```{r}
+
+# is carat the best predictor of price>
+ggplot(diamonds, aes(carat, price)) +
+  geom_point() +
+  ggtitle("Is carat the best predictor?")
+
+# is clarity the best predictor of price?
+ggplot(diamonds, aes(clarity, price)) +
+  geom_boxplot() +
+    ggtitle("Is clarity the best predictor?")
+```
+Carat is more important than clarity to predict price.
+
+``` {r}
+# how is carat related to cut?
+ggplot(diamonds, aes(cut, carat)) +
+  geom_boxplot() +
+    ggtitle("How are carat and cut related?") +
+  coord_flip()
+
+```
+
+Higher quality diamonds have a lesser cut than lower quality diamonds. This leads to a lower price for ideal diamonds compared to fair quality diamonds. Not much difference in the middle cut types though.
+
+3. Install the ggstance package, and create a horizontal boxplot. How does this compare to using coord_flip()?
+
+```{r}
+
+library(ggstance)
+
+# geom_boxplot with coord-flip
+ggplot(diamonds, aes(cut, carat)) +
+  geom_boxplot() +
+    ggtitle("geom_boxplot") +
+  coord_flip()
+
+# ggstance
+ggplot(diamonds, aes(carat, cut)) +
+  geom_boxploth() +
+  ggtitle("geom_boxploth")
+
+
+
+```
+
+Both boxplots looks the same using geom_boxplot with coord_flip or geom_boxploth.
+
+4. One problem with boxplots is that they were developed in an era of much smaller datasets and tend to display a prohibitively large number of “outlying values”. One approach to remedy this problem is the letter value plot. Install the lvplot package, and try using geom_lv() to display the distribution of price vs cut. What do you learn? How do you interpret the plots?
+
+```{r}
+
+library(lvplot)
+
+# geom_boxplot with coord-flip
+ggplot(diamonds, aes(cut, carat)) +
+  geom_lv(outlier.colour = "blue") +
+    ggtitle("geom_lv") +
+  coord_flip()
+
+```
+
+geom_lv uses more boxes than the quartiles used in geom_boxplot. lvplot is useful for larger datasets (>200 observations).
+
+5. Compare and contrast geom_violin() with a facetted geom_histogram(), or a coloured geom_freqpoly(). What are the pros and cons of each method?
+
+```{r}
+
+ggplot(diamonds, aes(x = price, y = ..density.., color = cut)) +
+  geom_freqpoly(binwidth = 100) +
+  ggtitle("geom_freqpoly")
+
+ggplot(diamonds, aes(x = price)) +
+  facet_wrap(~cut) +
+  geom_histogram(binwidth = 100) +
+  ggtitle("facetted geom_histogram")
+
+ggplot(diamonds, aes(x = cut, y = price)) +
+  geom_violin() +
+  ggtitle("geom_violin")
+
+
+```
+
+geom_violin is easier to compare the three distributions. geom_freqpoly is easier to see each cut for a given price.
+
+
+6. If you have a small dataset, it’s sometimes useful to use geom_jitter() to see the relationship between a continuous and categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly describe what each one does.
+
+```{r}
+library(ggbeeswarm)
+
+# from beeswarm github website
+set.seed(12345)
+library(ggplot2)
+library(ggbeeswarm)
+
+#compare to jitter
+ggplot(iris,aes(Species, Sepal.Length)) + 
+  geom_jitter() +
+  ggtitle("geom_jitter")
+
+ggplot(iris,aes(Species, Sepal.Length)) +
+  geom_quasirandom() +
+  ggtitle("geom_quasirandom")
+
+ggplot(iris,aes(Species, Sepal.Length)) +
+  geom_beeswarm() +
+  ggtitle("geom_beeswarm")
+
+
+```
+
+
+Both functions are used to offset points within categories to reduce overplotting. 
+geom_quairandom uses a van der Corput sequence or Tukey texturing (Tukey and Tukey "Strips displaying empirical distributions: I. textured dot strips") to space the dots to avoid overplotting.
+geom_beeswarm uses the beeswarm library to do point-size based offset. Looking at the example graphs it looks like geom_jitter is more random, geom_quasirandom is more like a violin plot, and geom_beeswarm is a tighter violin plot.
 
