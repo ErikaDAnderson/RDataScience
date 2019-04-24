@@ -44,6 +44,7 @@ rsconnect/
 *.log
 *.lot
 *.pdf
+*.png
 *.ps
 *.toc
 # *.txt
