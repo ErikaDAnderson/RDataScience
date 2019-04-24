@@ -1,0 +1,137 @@
+---
+title: "7 Exploratory Data Analysis"
+author: "Erika Anderson"
+date: "April 24, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse)
+
+```
+
+A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) by Jeffrey Arnold on Git Hub.
+
+
+# 7.3.4 Exercises
+
+1. Explore the distribution of each of the x, y, and z variables in diamonds. What do you learn? Think about a diamond and how you might decide which dimension is the length, width, and depth.
+
+```{r}
+
+ggplot(diamonds, mapping = aes(x = x)) +
+  geom_histogram(binwidth = 0.5)
+```
+Diamonds have am x dimension between approximately 4 to 8 mm with peaks at 5 and 7. The documentation says x  is "length in mm (0–10.74)"."
+
+
+```{r}
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = y), binwidth = 0.5) +
+  coord_cartesian(ylim = c(0, 50))
+```
+
+Diamonds have a y dimension between approximately 5 to 10 mm with outliers at 0, 30 and 60 mm. The documentation says y  is "width in mm (0–58.9)".
+
+
+```{r}
+ggplot(diamonds) + 
+  geom_histogram(mapping = aes(x = z), binwidth = 0.5) +
+  coord_cartesian(ylim = c(0, 30))
+```
+
+
+Diamonds have a z dimension between approximately 2 to 7 mm with outliers at 0 and 32 mm. The documentation says z is "depth in mm (0–31.8)".
+
+2. Explore the distribution of price. Do you discover anything unusual or surprising? (Hint: Carefully think about the binwidth and make sure you try a wide range of values.)
+
+```{r}
+
+# default bin witdth
+ggplot(diamonds, aes(x = price)) +
+  geom_histogram() +
+  ggtitle("More diamonds at lower prices using default bin width")
+
+diamonds %>% 
+  count(cut_width(price, 100)) %>%
+  arrange(desc(n))
+
+# change bin width
+ggplot(diamonds, aes(x = price)) +
+  geom_histogram(binwidth = 100) +
+  ggtitle("Marketing drives prices at certain price points",
+          subtitle = "Examples at $700 and $600")
+
+```
+
+
+3. How many diamonds are 0.99 carat? How many are 1 carat? What do you think is the cause of the difference?
+
+```{r}
+
+diammonds99 <- diamonds %>%
+  filter(carat == 0.99 | carat == 1) %>%
+  count(carat)
+  
+```
+
+There are 23 0.99 carat diamonds and 1558 carat diamonds. This is likely driven by marketing.
+
+4. Compare and contrast coord_cartesian() vs xlim() or ylim() when zooming in on a histogram. What happens if you leave binwidth unset? What happens if you try and zoom so only half a bar shows?
+
+```{r}
+
+# basic histogram
+ggplot(diamonds, aes(x = x)) +
+  geom_histogram(binwidth = 0.25) 
+
+# coord_cartesian wit xlim
+ggplot(diamonds, aes(x = x)) +
+  geom_histogram(binwidth = 0.25) +
+  coord_cartesian(xlim = c(0, 6))
+
+# xlim by itself
+ggplot(diamonds, aes(x = x)) +
+  geom_histogram(binwidth = 0.25) +
+  xlim(0, 6)
+
+```
+
+
+Using the xlim function, there are warnings given about omiting observations. There are no warnings with coord_cartesian funtion. You need to choose a binwidth to omit the bin width warning for both functions. The coord_cartesian zooms into a section of the graph, whereas the xlim function drops all observations outside the limits.
+
+
+# 7.4.1 Exercises
+
+1. What happens to missing values in a histogram? What happens to missing values in a bar chart? Why is there a difference?
+
+```{r}
+
+diamonds2 <- diamonds %>% 
+  mutate(y = ifelse(y < 3 | y > 20, NA, y))
+
+ggplot(diamonds2, aes(x = y)) +
+  geom_histogram(binwidth = 0.25) +
+  ggtitle("Warning given that rows have non-finite values in stat_bin")
+
+ggplot(diamonds2, aes(x = y)) +
+  geom_bar() +
+  ggtitle("Warning given that rows have non-finite values in stat_count")
+  
+
+```
+
+There doesn't appear to be a large difference between geom_histogram and geom_bar because both functions give a warning of missing values. This is different with categorical data when NAs become a seperate category.
+
+2. What does na.rm = TRUE do in mean() and sum()?
+
+In the mean function, na.rm = TRUE is a logical value indicating whether NA values should be stripped before the computation proceeds.
+
+In the sum function, na.rm = TRUE is logical. Should missing values (including NaN) be removed?
+
+# 7.5.1.1 Exercises
+
+
