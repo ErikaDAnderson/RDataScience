@@ -253,8 +253,6 @@ library(ggbeeswarm)
 
 # from beeswarm github website
 set.seed(12345)
-library(ggplot2)
-library(ggbeeswarm)
 
 #compare to jitter
 ggplot(iris,aes(Species, Sepal.Length)) + 
@@ -341,7 +339,7 @@ It is usually better to put the group with the lower number of categories on the
 
 1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
 
-cut_width needs the width specified, whereas cut_number needs the number within a bin specified. Either way the lines or color should be kept under 6 values or the graph gets too busy.
+cut_width needs the width specified, whereas cut_number needs the number within a bin specified. Either way the lines or color should be kept under 6 values or the graph gets too busy. Easier to see trends in cut_number and easier to see larger groups in cut_Width
 
 
 ```{r}
