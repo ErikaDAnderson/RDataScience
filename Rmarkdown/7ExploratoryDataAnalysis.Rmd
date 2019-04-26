@@ -410,7 +410,7 @@ ggplot(data = diamonds) +
 ggplot(diamonds, aes(x, y)) +
   geom_bin2d() +
   coord_cartesian(xlim = c(4, 11), ylim = c(4, 11)) +
-  ggtitle("2Dimension Plot Outliers")
+  ggtitle("2 Dimension Plot Outliers")
 
 ```
 
