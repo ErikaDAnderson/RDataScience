@@ -35,6 +35,11 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 
+# add data file from example to avoid uploading
+diamonds.csv
+
+diamonds.csv
+
 # recommended from TTT workshop
 *.aux
 *.bbl
