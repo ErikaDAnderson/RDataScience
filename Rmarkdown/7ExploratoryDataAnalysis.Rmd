@@ -13,7 +13,7 @@ library(tidyverse)
 
 ```
 
-A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) by Jeffrey Arnold on Git Hub.
+A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) that I have found so far by Jeffrey Arnold on Git Hub.
 
 
 # 7.3.4 Exercises
@@ -25,7 +25,8 @@ A group of DFO coworkers decided to work together to compete the exercises in [R
 ggplot(diamonds, mapping = aes(x = x)) +
   geom_histogram(binwidth = 0.5)
 ```
-Diamonds have am x dimension between approximately 4 to 8 mm with peaks at 5 and 7. The documentation says x  is "length in mm (0–10.74)"."
+  
+Diamonds have an x dimension between approximately 4 to 8 mm with peaks at 5 and 7. The documentation says x  is "length in mm (0–10.74)"."
 
 
 ```{r}
@@ -171,6 +172,7 @@ ggplot(diamonds, aes(clarity, price)) +
   geom_boxplot() +
     ggtitle("Is clarity the best predictor?")
 ```
+  
 Carat is more important than clarity to predict price.
 
 ``` {r}
@@ -243,7 +245,7 @@ ggplot(diamonds, aes(x = cut, y = price)) +
 
 ```
 
-geom_violin is easier to compare the three distributions. geom_freqpoly is easier to see each cut for a given price.
+I think that geom_violin is easier to compare the three distributions. Facetted geom_histogram has better visualization of individual distributions, whereas it is easier to see each cut for a given price in geom_freqpoly.
 
 
 6. If you have a small dataset, it’s sometimes useful to use geom_jitter() to see the relationship between a continuous and categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly describe what each one does.
@@ -251,8 +253,7 @@ geom_violin is easier to compare the three distributions. geom_freqpoly is easie
 ```{r}
 library(ggbeeswarm)
 
-# from beeswarm github website
-set.seed(12345)
+## from beeswarm github website
 
 #compare to jitter
 ggplot(iris,aes(Species, Sepal.Length)) + 
@@ -271,9 +272,10 @@ ggplot(iris,aes(Species, Sepal.Length)) +
 ```
 
 
-Both functions are used to offset points within categories to reduce overplotting. 
-geom_quairandom uses a van der Corput sequence or Tukey texturing (Tukey and Tukey "Strips displaying empirical distributions: I. textured dot strips") to space the dots to avoid overplotting.
-geom_beeswarm uses the beeswarm library to do point-size based offset. Looking at the example graphs it looks like geom_jitter is more random, geom_quasirandom is more like a violin plot, and geom_beeswarm is a tighter violin plot.
+Looking at the example graphs it looks like geom_jitter is more random, geom_quasirandom is more like a violin plot, and geom_beeswarm is a tighter violin plot. All functions are used to offset points within categories to reduce overplotting. 
+  
+geom_quasirandom uses a van der Corput sequence or Tukey texturing (Tukey and Tukey "Strips displaying empirical distributions: I. textured dot strips") to space the dots to avoid overplotting.
+geom_beeswarm uses the beeswarm library to do point-size based offset. 
 
 
 # 7.5.2.1 Exercises
@@ -329,7 +331,8 @@ nycflights13::flights %>%
 
 
 ```
-The graph has too much information to be useful as there are too many destinations and months. It does seem like delays are influenced by destination and month (ie. December). I would explore a few graphs from example destinations, or use all destinations for each month. 
+  
+  The graph has too much information to be useful as there are too many destinations and months. It does seem like delays are influenced by destination and month (ie. December). I would explore a few graphs from example destinations, or use all destinations for one month. 
 
 3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
 
@@ -339,12 +342,12 @@ It is usually better to put the group with the lower number of categories on the
 
 1. Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
 
-cut_width needs the width specified, whereas cut_number needs the number within a bin specified. Either way the lines or color should be kept under 6 values or the graph gets too busy. Easier to see trends in cut_number and easier to see larger groups in cut_Width
+cut_width needs the width specified, whereas cut_number needs the number within a bin specified. Either way the lines or color should be kept under 6 values or the graph gets too busy. Easier to see trends in cut_number and easier to see larger groups in cut_width
 
 
 ```{r}
 
-ggplot(diamonds, aes(x = price, color = cut_width(carat, 1, boundary = 0))) + 
+ggplot(diamonds, aes(x = price, color = cut_width(carat, 1, boundary = 0))) + # added boundary so carat starts there
   geom_freqpoly(binwidth = 200) +
   ggtitle("geom_freqpoly with cut_width") +
   labs(color = "carat")
@@ -359,9 +362,41 @@ ggplot(diamonds, aes(price, color = cut_number(carat, 5))) +
 
 2. Visualise the distribution of carat, partitioned by price.
 
+```{r}
+
+ggplot(diamonds, aes(carat, price)) + 
+  geom_bin2d() +
+  ggtitle("Distribution of Carat by Price") 
+
+#library(hexbin)
+
+ggplot(diamonds, aes(carat, price)) +
+  geom_hex() +
+  ggtitle("Distribution of Carat by Price") 
+
+```
+
+
 3. How does the price distribution of very large diamonds compare to small diamonds? Is it as you expect, or does it surprise you?
 
+```{r}
+ggplot(diamonds, aes(carat, price)) + 
+  geom_boxplot(aes(group = cut_width(carat, 0.1)))
+```
+
+
+The price range of diamonds gets larger as the diamonds get larger, until three carats. After 3 carats, it looks like there are too few diamonds for an accurate range.
+
 4. Combine two of the techniques you’ve learned to visualise the combined distribution of cut, carat, and price.
+
+```{r}
+
+ggplot(diamonds, aes(cut_width(carat, 1, boundary = 0), price, colour = cut)) +
+  geom_boxplot() +
+  labs(x = "Carat")
+
+```
+
 
 5. Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately. Why is a scatterplot a better display than a binned plot for this case?
 
@@ -369,9 +404,16 @@ ggplot(diamonds, aes(price, color = cut_number(carat, 5))) +
 
 ggplot(data = diamonds) +
   geom_point(mapping = aes(x = x, y = y)) +
-  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11))
+  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11)) +
+  ggtitle("Scatter Plot Outliers")
+
+ggplot(diamonds, aes(x, y)) +
+  geom_bin2d() +
+  coord_cartesian(xlim = c(4, 11), ylim = c(4, 11)) +
+  ggtitle("2Dimension Plot Outliers")
 
 ```
 
 
+It looks like data with a linear relationship is better displayed with geom_point, whereas more two dimensional graphs show non- linear trends better.
 
