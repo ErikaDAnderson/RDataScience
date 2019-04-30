@@ -60,6 +60,9 @@ diamonds %>%
   count(cut_width(price, 100)) %>%
   arrange(desc(n))
 
+# turn off scientific notation
+#options("scipen" = FALSE)
+
 # change bin width
 ggplot(diamonds, aes(x = price)) +
   geom_histogram(binwidth = 100) +
@@ -91,18 +94,18 @@ ggplot(diamonds, aes(x = x)) +
 
 # coord_cartesian wit xlim
 ggplot(diamonds, aes(x = x)) +
-  geom_histogram(binwidth = 0.25) +
+  geom_histogram(binwidth = 1) +
   coord_cartesian(xlim = c(0, 6))
 
 # xlim by itself
 ggplot(diamonds, aes(x = x)) +
-  geom_histogram(binwidth = 0.25) +
-  xlim(0, 6)
+  geom_histogram(binwidth = 1) +
+  xlim(0, 5.5)
 
 ```
 
 
-Using the xlim function, there are warnings given about omitting observations. There are no warnings with coord_cartesian function. You need to choose a binwidth to omit the bin width warning for both functions. The coord_cartesian zooms into a section of the graph, whereas the xlim function drops all observations outside the limits.
+Using the xlim function, there are warnings given about omitting observations. There are no warnings with coord_cartesian function. You need to choose a binwidth to omit the bin width warning for both functions. The coord_cartesian zooms into a section of the graph, whereas the xlim function drops all observations outside the limits. If the bin is cut, in coord_cartesian the in is the same height but half the width. If the bin is cut in xlim, the data is dropped in the cut bin.
 
 
 # 7.4.1 Exercises
@@ -115,17 +118,19 @@ diamonds2 <- diamonds %>%
   mutate(y = ifelse(y < 3 | y > 20, NA, y))
 
 ggplot(diamonds2, aes(x = y)) +
-  geom_histogram(binwidth = 0.25) +
-  ggtitle("Warning given that rows have non-finite values in stat_bin")
+  geom_histogram() +
+  ggtitle("Geom_histogram")
 
 ggplot(diamonds2, aes(x = y)) +
   geom_bar() +
-  ggtitle("Warning given that rows have non-finite values in stat_count")
+  ggtitle("Geom_bar")
   
 
 ```
 
 There doesn't appear to be a large difference between geom_histogram and geom_bar because both functions give a warning of missing values. This is different with categorical data when NAs become a separate category.
+
+geom_histogram makes bar continuous even if they are not continuous but geom_bar leaves gaps???
 
 2. What does na.rm = TRUE do in mean() and sum()?
 
@@ -150,7 +155,6 @@ flights %>%
   
   ggplot(mapping = aes(x = cancelled,  y =sched_dep_time)) + 
     geom_boxplot()
-
 
 ```
 
@@ -184,7 +188,7 @@ ggplot(diamonds, aes(cut, carat)) +
 
 ```
 
-Higher quality diamonds have a lesser cut than lower quality diamonds. This leads to a lower price for ideal diamonds compared to fair quality diamonds. Not much difference in the middle cut types though.
+Higher quality diamonds have a lesser cut than lower quality diamonds. This leads to a lower price for ideal diamonds compared to fair quality diamonds. Not much difference in the middle cut types though. Could do more on clarity too.
 
 3. Install the ggstance package, and create a horizontal boxplot. How does this compare to using coord_flip()?
 
@@ -275,6 +279,7 @@ ggplot(iris,aes(Species, Sepal.Length)) +
 Looking at the example graphs it looks like geom_jitter is more random, geom_quasirandom is more like a violin plot, and geom_beeswarm is a tighter violin plot. All functions are used to offset points within categories to reduce overplotting. 
   
 geom_quasirandom uses a van der Corput sequence or Tukey texturing (Tukey and Tukey "Strips displaying empirical distributions: I. textured dot strips") to space the dots to avoid overplotting.
+
 geom_beeswarm uses the beeswarm library to do point-size based offset. 
 
 
@@ -336,7 +341,7 @@ nycflights13::flights %>%
 
 3. Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
 
-It is usually better to put the group with the lower number of categories on the x-axis and color has less categories than cut.
+It is usually better to put the group with the lower number of categories on the x-axis and color has less categories than cut. From a statistcal point of value, the x-axis should be the independent variable and y-axis the dependent variable.
 
 # 7.5.2.2 Exercises
 
@@ -366,13 +371,16 @@ ggplot(diamonds, aes(price, color = cut_number(carat, 5))) +
 
 ggplot(diamonds, aes(carat, price)) + 
   geom_bin2d() +
-  ggtitle("Distribution of Carat by Price") 
+  ggtitle("Distribution of Carat by Price") +
+  scale_fill_viridis_c()
 
 #library(hexbin)
 
 ggplot(diamonds, aes(carat, price)) +
   geom_hex() +
-  ggtitle("Distribution of Carat by Price") 
+  ggtitle("Distribution of Carat by Price")+
+  scale_fill_viridis_c()
+  
 
 ```
 
@@ -393,7 +401,8 @@ The price range of diamonds gets larger as the diamonds get larger, until three 
 
 ggplot(diamonds, aes(cut_width(carat, 1, boundary = 0), price, colour = cut)) +
   geom_boxplot() +
-  labs(x = "Carat")
+  labs(x = "Carat") +
+  scale_color_viridis_d()
 
 ```
 
@@ -408,7 +417,7 @@ ggplot(data = diamonds) +
   ggtitle("Scatter Plot Outliers")
 
 ggplot(diamonds, aes(x, y)) +
-  geom_bin2d() +
+  geom_bin2d(binwidth = 0.05) +
   coord_cartesian(xlim = c(4, 11), ylim = c(4, 11)) +
   ggtitle("2 Dimension Plot Outliers")
 
