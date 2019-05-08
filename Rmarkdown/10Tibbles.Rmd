@@ -1,0 +1,170 @@
+---
+title: "10 Tibbles"
+author: "Erika Anderson"
+date: "May 8, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse)
+
+```
+
+A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) that I have found so far by Jeffrey Arnold on Git Hub.
+
+# 10.5 Exercises
+
+1. How can you tell if an object is a tibble? (Hint: try printing mtcars, which is a regular data frame).
+
+```{r}
+
+# print original data
+print(mtcars)
+
+# check if tibble
+is_tibble(mtcars)
+
+# convert into tibble
+mtcarstib <- as_tibble(mtcars)
+
+# check if tibble
+is_tibble(mtcarstib)
+
+# use class function
+class(mtcars)
+class(mtcarstib)
+
+# print tibble
+print(mtcarstib)
+```
+
+
+2. Compare and contrast the following operations on a data.frame and equivalent tibble. What is different? Why might the default data frame behaviours cause you frustration?
+
+- data frames return imperfect matching column name
+- subsets returns with column name
+- data types are given in tibbles results
+
+```{r}
+
+df <- data.frame(abc = 1, xyz = "a")
+dftib <- as_tibble(df)
+
+df$x # incorrectly returns column xyz
+dftib$x # gives error
+
+df[, "xyz"] # returns a
+dftib[, "xyz"] # returns column xyz with a
+
+df[, c("abc", "xyz")] # returns columns
+dftib[, c("abc", "xyz")] # returns columns and data type
+
+```
+
+
+3. If you have the name of a variable stored in an object, e.g. var <- "mpg", how can you extract the reference variable from a tibble?
+
+```{r}
+
+var <- "mpg"
+
+carstib <- as_tibble(mtcars)
+
+# subset
+mtcarstib[var]
+
+# these do not work with a column name stored in a variable
+# # using dollar sign
+# carstib$var
+# 
+# # with pipe
+# carstib %>%
+#   .$var
+
+```
+
+
+4. Practice referring to non-syntactic names in the following data frame by:
+
+```{r}
+
+annoying <- tibble(
+  `1` = 1:10,
+  `2` = `1` * 2 + rnorm(length(`1`))
+)
+
+```
+    
+  + Extracting the variable called 1.
+  
+```{r}
+
+annoying[[1,2]]
+```
+  
+
+  + Plotting a scatterplot of 1 vs 2.
+  
+```{r}
+ggplot(annoying, aes(`1`, `2`)) +
+  geom_point()
+```
+  
+
+  + Creating a new column called 3 which is 2 divided by 1.
+  
+```{r}
+annoying3 <- annoying %>%
+  mutate(`3` = `2`/`1`)
+```
+  
+
+  + Renaming the columns to one, two and three.
+  
+```{r}
+annoying3 %>%
+  rename(one = `1`,
+         two = `2`,
+         three = `3`)
+```
+  
+  
+5. What does tibble::enframe() do? When might you use it?
+
+From help using ?enframe:
+  converts named atomic vectors or lists to one- or two-column data frames. For a list, the result will be a nested tibble with a column of type list. For unnamed vectors, the natural sequence is used as name column.
+  
+  When would we use this? Perhaps to convert lists to tibble.
+  
+```{r}
+enframe(mtcarstib$mpg)
+
+```
+  
+
+6. What option controls how many additional column names are printed at the footer of a tibble?
+
+```{r}
+
+# normal tibble defaults
+print(mtcarstib)
+
+# extra columns
+print(mtcarstib, n_extra = 5)
+
+# print only two rows
+print(mtcarstib, n = 2)
+
+# set max width for columns
+print(mtcarstib, width = 4)
+
+# or you can change global options for printing collumns and rows of tibbles
+# (tibble.print_min = Inf)
+# options(tibble.print_max = n, tibble.print_min = m)
+
+```
+  
+  
