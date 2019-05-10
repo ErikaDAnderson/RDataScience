@@ -71,14 +71,18 @@ dftib[, c("abc", "xyz")] # returns columns and data type
 
 var <- "mpg"
 
-carstib <- as_tibble(mtcars)
+mtcarstib <- as_tibble(mtcars)
 
 # subset
 mtcarstib[var]
 
+# another way
+mtcarstib %>%
+  select(var)
+
 # these do not work with a column name stored in a variable
 # # using dollar sign
-# carstib$var
+#carstib$var
 # 
 # # with pipe
 # carstib %>%
@@ -102,7 +106,17 @@ annoying <- tibble(
   
 ```{r}
 
+# base R way to pull observation one
 annoying[[1,2]]
+
+# another way to pull column one
+annoying$`1`
+
+# another way to pull column one
+annoying %>%
+filter(., `1` == 1) %>%
+  pull(`2`)
+
 ```
   
 
@@ -110,6 +124,10 @@ annoying[[1,2]]
   
 ```{r}
 ggplot(annoying, aes(`1`, `2`)) +
+  geom_point()
+
+# what happens with no back ticks
+ggplot(annoying, aes(1, 2)) +
   geom_point()
 ```
   
@@ -119,14 +137,23 @@ ggplot(annoying, aes(`1`, `2`)) +
 ```{r}
 annoying3 <- annoying %>%
   mutate(`3` = `2`/`1`)
+annoying3
 ```
   
 
   + Renaming the columns to one, two and three.
   
 ```{r}
+
+# just renames the columns but keeps all
 annoying3 %>%
   rename(one = `1`,
+         two = `2`,
+         three = `3`)
+
+# another way but it drops other columns
+annoying3 %>%
+  select(one = `1`,
          two = `2`,
          three = `3`)
 ```
@@ -137,7 +164,7 @@ annoying3 %>%
 From help using ?enframe:
   converts named atomic vectors or lists to one- or two-column data frames. For a list, the result will be a nested tibble with a column of type list. For unnamed vectors, the natural sequence is used as name column.
   
-  When would we use this? Perhaps to convert lists to tibble.
+  When would we use this? Perhaps to convert lists to tibble. Convert two vectors into data frame. Maybe not application to our large datasets.
   
 ```{r}
 enframe(mtcarstib$mpg)
@@ -150,16 +177,17 @@ enframe(mtcarstib$mpg)
 ```{r}
 
 # normal tibble defaults
-print(mtcarstib)
+print(nycflights13::flights)
 
-# extra columns
-print(mtcarstib, n_extra = 5)
+# with max columns defined 
+print(nycflights13::flights, max_extra_cols = 5)
 
-# print only two rows
-print(mtcarstib, n = 2)
+# global options
+#(tibble.print_min = Inf) # option to print everything like in data frames
+options(tibble.print_max = 50, tibble.print_min = 10) # does this work?
 
-# set max width for columns
-print(mtcarstib, width = 4)
+# with global tibble defaults changed
+print(nycflights13::flights)
 
 # or you can change global options for printing collumns and rows of tibbles
 # (tibble.print_min = Inf)
