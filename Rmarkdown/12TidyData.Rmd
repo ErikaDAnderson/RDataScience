@@ -1,7 +1,7 @@
 ---
 title: "12 Tidy Data"
 author: "Erika Anderson"
-date: "May 8, 2019"
+date: "May 21, 2019"
 output: html_document
 ---
 
@@ -13,21 +13,90 @@ library(tidyverse)
 
 ```
 
-A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) that I have found so far by Jeffrey Arnold on Git Hub.
+A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
 
 # 12.2.1 Exercises
 
 1. Using prose, describe how the variables and observations are organised in each of the sample tables.
 
-2. Compute the rate for table2, and table4a + table4b. You will need to perform four operations:
+table1 - There are four columns (country, year, cases, population), Each observation is in a row.  
+table2 - One of the columns called type indicates whether the results are cases or population. This means that there are two rows for each country row combination.  
+table3 - One column called rate has the number of cases and the population within one field.  
+table4 - There are two tables a and b that contain the cases and population data seperately. 
 
-3. Extract the number of TB cases per country per year.
-    1. Extract the matching population per country per year.
-    2. Divide cases by population, and multiply by 10000.
-    3. Store back in the appropriate place.
-  Which representation is easiest to work with? Which is hardest? Why?
+
+2. Compute the rate for table2, and table4a + table4b. 
+
+You will need to perform four operations for each table:
+1. Extract the number of TB cases per country per year.
+2. Extract the matching population per country per year.
+3. Divide cases by population, and multiply by 10000.
+4. Store back in the appropriate place.
+
+```{r}
+# table 2
+table2
+
+# Extract the number of TB cases per country per year.
+# Extract the matching population per country per year.
+spread(table2, type, count) %>%
+
+# Divide cases by population, and multiply by 10000.
+# Store back in the appropriate place.
+  mutate(., rate = cases/population * 10000)
+
+# table 4a
+table4a
+
+# gather year columns into observations
+table4a_mod <- gather(table4a, "year", "cases", 2:3)
+
+# table 4b
+table4b
+
+# gather year columns into observations
+table4b_mod <- gather(table4b, "year", "population", 2:3)
+
+table4 <- table4a_mod %>%
+  full_join(., table4b_mod, by = c("country", "year")) %>%
+  mutate(., rate = cases/population * 10000)
+table4
+
+```
+
+
+Which representation is easiest to work with? Which is hardest? Why?
+
+table2 is faster. I find tables 4a and 4b more intuitive, although there is repetition to gather the two tables
 
 4. Recreate the plot showing change in cases over time using table2 instead of table1. What do you need to do first?
+
+```{r}
+table2
+
+# tidy data
+table2_tidy <- spread(table2, type, count)
+  
+  # graph cases by year
+  ggplot(data = table2_tidy,
+         aes(year, cases, color = country)) +
+  geom_point() +
+  geom_line()
+  
+  # or a shorter version is
+  # tidy data
+spread(table2, type, count) %>%
+  
+  # graph cases by year
+  ggplot(data = .,
+         aes(year, cases, color = country)) +
+  geom_point() +
+  geom_line()
+
+
+```
+
+
 
 # 12.3.3 Exercises
 
@@ -36,22 +105,22 @@ Carefully consider the following example:
 (Hint: look at the variable types and think about column names.)
 
 ```{r}
-stocks <- tibble(
-  year   = c(2015, 2015, 2016, 2016),
-  half  = c(   1,    2,     1,    2),
-  return = c(1.88, 0.59, 0.92, 0.17)
-)
-stocks %>% 
-  spread(year, return) %>% 
-  gather("year", "return", `2015`:`2016`)
+# stocks <- tibble(
+#   year   = c(2015, 2015, 2016, 2016),
+#   half  = c(   1,    2,     1,    2),
+#   return = c(1.88, 0.59, 0.92, 0.17)
+# )
+# stocks %>% 
+#   spread(year, return) %>% 
+#   gather("year", "return", `2015`:`2016`)
 ```
 
 2. Why does this code fail?
 
 ```{r}
-table4a %>% 
-  gather(1999, 2000, key = "year", value = "cases")
-#> Error in inds_combine(.vars, ind_list): Position must be between 0 and n
+# table4a %>% 
+#   gather(1999, 2000, key = "year", value = "cases")
+# #> Error in inds_combine(.vars, ind_list): Position must be between 0 and n
 ```
 
 3. Why does spreading this tibble fail? How could you add a new column to fix the problem?
