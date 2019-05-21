@@ -1,7 +1,7 @@
 ---
 title: "11 Data Import"
 author: "Erika Anderson"
-date: "May 8, 2019"
+date: "May 21, 2019"
 output: html_document
 ---
 
@@ -20,24 +20,48 @@ A group of DFO coworkers decided to work together to compete the exercises in [R
 1. What function would you use to read a file where fields were separated with
 “|”?
 
+read_delim
+
 2. Apart from file, skip, and comment, what other arguments do read_csv() and read_tsv() have in common?
 
+read_csv and read_tsv common arguements:
+    
+* col_names
+* col_types
+* locale
+* na
+* quoted_na
+* quote
+* trm_ws
+* n_max
+* show_progress
+* skip_empty_rows
+
+
 3. What are the most important arguments to read_fwf()?
+
+file
+col_positions: fwf_widths() or fwf_positions()
+
+
 
 4. Sometimes strings in a CSV file contain commas. To prevent them from causing problems they need to be surrounded by a quoting character, like " or '. By convention, read_csv() assumes that the quoting character will be ", and if you want to change it you’ll need to use read_delim() instead. What arguments do you need to specify to read the following text into a data frame?
 
 ```{r}
-"x,y\n1,'a,b'"
+
+library(readr)
+read_delim("x,y\n1,'a,b'", delim = ",", quote = "'")
+
 ```
 
 5. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
 
 ```{r}
-read_csv("a,b\n1,2,3\n4,5,6")
-read_csv("a,b,c\n1,2\n1,2,3,4")
-read_csv("a,b\n\"1")
-read_csv("a,b\n1,2\na,b")
-read_csv("a;b\n1;3")
+read_csv("a,b\n1,2,3\n4,5,6") # two column names but three columns of data so last column dropped
+read_csv("a,b,c\n1,2\n1,2,3,4") # three column names but only two values in second line of data, so NA assigned
+read_csv("a,b\n\"1") # two columns and one data value so NA assigned
+read_csv("a,b\n1,2\na,b") # the numbers are treated as characters since the data types are disparate
+read_csv("a;b\n1;3") # semi column doesn't work as a spacer but is included as character
 ```
 
 
@@ -45,25 +69,96 @@ read_csv("a;b\n1;3")
 
 1. What are the most important arguments to locale()?
 
+date_names - language code as string from date_names_langs()  
+date_format - has default %AD  
+time_format -  has default %AT  
+decimal_mark -  default is ,  
+grouping_mark - default is non, but can change from , to ' or space  
+tz -  time zone ; default is UTC  
+encoding - default UTF-8  
+
+
 2. What happens if you try and set decimal_mark and grouping_mark to the same character? What happens to the default value of grouping_mark when you set decimal_mark to “,”? What happens to the default value of decimal_mark when you set the grouping_mark to “.”?
+
+```{r}
+#locale(decimal_mark = ".", grouping_mark = ".")
+# Error: `decimal_mark` and `grouping_mark` must be different
+
+```
+
 
 3. I didn’t discuss the date_format and time_format options to locale(). What do they do? Construct an example that shows when they might be useful.
 
+They allow you to give a default format to locale(). The date_format default %AD uses an automatic data parser that recognizes Y-m-d or Y/m/d. It may be useful to change if the data is in a non-standard date format such as d-m-Y. The time_default is %AT which uses an automatic time parser the uses H:M with optional seconds and am/pm. This could be changed if the time format was in a non-stand time format such as 19h30.
+
+```{r}
+
+parse_date("May 21 2019")
+parse_date("May 21 2019", "%B %d %Y")
+parse_date("May 21 2019", locale = locale("en", date_format = "%B %d %Y"))
+# Why would date_format be preferred over the shorter version with format defined?
+
+```
+
+
 4. If you live outside the US, create a new locale object that encapsulates the settings for the types of file you read most commonly.
+
+```{r}
+
+# see the existing locale
+locale()
+
+# create a different locale
+diff_locale <- locale(date_format = "%B %d, %Y")
+
+# see the resulting locale
+diff_locale
+
+# test the new locale with month before day
+parse_date("May 21, 2019", locale = diff_locale)
+
+
+```
+
 
 5. What’s the difference between read_csv() and read_csv2()?
 
+read_csv2 uses a semi colon as a deliminator so commas may be used for decimal points for European users.
+
 6. What are the most common encodings used in Europe? What are the most common encodings used in Asia? Do some googling to find out.
+
+Top 3 Worldwide   
+1. UTF-8 93.5%  
+2. ISO-8859-1 3.2%  
+3. Windows-1251 0.9%   
+
+Europe ISO-8859 many versions
+
+Asia  Guobiao GB 2312, GBK, GB 18030
+
 
 7. Generate the correct format string to parse each of the following dates and times:
 
 ```{r}
 d1 <- "January 1, 2010"
+parse_date(d1, "%B %d, %Y")
+
 d2 <- "2015-Mar-07"
+parse_date(d2, "%Y-%b-%d")
+
 d3 <- "06-Jun-2017"
+parse_date(d3, "%d-%b-%Y")
+
 d4 <- c("August 19 (2015)", "July 1 (2015)")
+parse_date(d4, "%B %d (%Y)")
+
 d5 <- "12/30/14" # Dec 30, 2014
+parse_date(d5, "%m/%d/%y")
+
 t1 <- "1705"
+parse_time(t1, "%H%M")
+
 t2 <- "11:15:10.12 PM"
+parse_time(t2, "%I:%M:%OS %p")
 ```
 
