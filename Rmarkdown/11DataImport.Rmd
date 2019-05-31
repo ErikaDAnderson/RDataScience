@@ -58,9 +58,13 @@ read_delim("x,y\n1,'a,b'", delim = ",", quote = "'")
 
 ```{r}
 read_csv("a,b\n1,2,3\n4,5,6") # two column names but three columns of data so last column dropped
+
 read_csv("a,b,c\n1,2\n1,2,3,4") # three column names but only two values in second line of data, so NA assigned
+
 read_csv("a,b\n\"1") # two columns and one data value so NA assigned
+
 read_csv("a,b\n1,2\na,b") # the numbers are treated as characters since the data types are disparate
+
 read_csv("a;b\n1;3") # semi column doesn't work as a spacer but is included as character
 ```
 
@@ -84,6 +88,10 @@ encoding - default UTF-8
 #locale(decimal_mark = ".", grouping_mark = ".")
 # Error: `decimal_mark` and `grouping_mark` must be different
 
+locale(decimal_mark = ",")
+
+locale(grouping_mark = ".") # changed to comma
+
 ```
 
 
@@ -93,10 +101,10 @@ They allow you to give a default format to locale(). The date_format default %AD
 
 ```{r}
 
-parse_date("May 21 2019")
-parse_date("May 21 2019", "%B %d %Y")
-parse_date("May 21 2019", locale = locale("en", date_format = "%B %d %Y"))
-# Why would date_format be preferred over the shorter version with format defined?
+parse_date("May 21 2019") # fails
+parse_date("May 21 2019", "%B %d %Y") # works
+parse_date("May 21 2019", locale = locale("en", date_format = "%B %d %Y")) # works
+
 
 ```
 
