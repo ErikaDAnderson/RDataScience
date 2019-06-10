@@ -131,6 +131,10 @@ table4a
 # table4a %>%
 #   gather(1999, 2000, key = "year", value = "cases")
 # #> Error in inds_combine(.vars, ind_list): Position must be between 0 and n
+
+table4a %>%
+  gather("1999", "2000", key = "year", value = "cases")
+
 ```
 
 3. Why does spreading this tibble fail? How could you add a new column to fix the problem?
@@ -163,6 +167,11 @@ preg <- tribble(
 )
 preg
 
+# wrong way
+preg %>%
+spread(key = "pregnant", value = "female")
+
+# right way
 preg %>%
 gather(male, female, key = "gender", value = "Number")
 ```
@@ -177,6 +186,7 @@ fill controls what happens if there are not enough pieces. The default is to war
 
 
 ```{r}
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j"))
 
 # original data frame with no options
 tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
@@ -198,7 +208,7 @@ tibble(x = c("a,b,c", "d,e", "f,g,i")) %>%
 
 2. Both unite() and separate() have a remove argument. What does it do? Why would you set it to FALSE?
 
-The remove = TRUE options means the original column will remain in the resulting data frame. You can set it to FALSE to remove the original field.
+The remove = TRUE options means the original column will be removed from the resulting data frame. You can set it to FALSE to remove the original field.
 
 3. Compare and contrast separate() and extract(). Why are there three variations of separation (by position, by separator, and with groups), but only one unite?
 
@@ -211,6 +221,15 @@ unite() puts columns together so there are less options than with separate().
 1. Compare and contrast the fill arguments to spread() and complete().
 
 The fill option in complete() takes the last value in that column and using it to fill in the missing values. The fill option in spread() tells the function what to replace missing values with.
+
+Spread only provides missing values within dataset but may not infill implicit missing values that are not present.
+
+Complete has a list option for fill but spread only takes a value as input.
+
+```{r }
+# try with years and pattern to fill
+
+```
 
 2. What does the direction argument to fill() do?
 
@@ -272,12 +291,28 @@ who_test
 No duplicates if distinct cases, insluding iso2 and iso3 are included.
 
 ```{r}
-who_country <- who3 %>%
+who_test2 <- who3 %>%
   select(country, iso2, iso3) %>%
   distinct()
-who_country
+who_test2
 
+# check for duplicates
 anyDuplicated(who_country)
+
+who_iso2 <- who_test2 %>%
+  select(iso2)
+  
+# check for duplicates
+anyDuplicated(who_iso2)
+
+who_iso3 <- who_test2 %>%
+  select(iso3)
+  
+# check for duplicates
+anyDuplicated(who_iso3)
+
+# check for total combinations and compare to nrow(who_country)
+n_distinct(who_country)
 
 ```
 
@@ -295,7 +330,7 @@ who_sum <- who5 %>%
   ungroup()
 who_sum
 
-# select top five countries to display
+# select top countries to display
 who_top9 <- who_sum %>%
   group_by(country) %>%
   summarize(totalCountry = sum(totalTB)) %>%
@@ -305,11 +340,10 @@ who_top9 <- who_sum %>%
   pull(country)
 who_top9
 
-# take top five from summed data
+# take top from summed data
 who_top <- who_sum %>%
   filter(country %in% who_top9)
   
-
 # graph it
 ggplot(who_top, aes(year, totalTB, color = sex)) +
   facet_wrap(~country) +
