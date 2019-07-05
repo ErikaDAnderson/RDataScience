@@ -1,0 +1,95 @@
+---
+title: "14 Strings"
+author: "Erika Anderson"
+date: "July 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse)
+library(stringr)
+
+```
+
+A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
+
+# 14.2.5 Exercises
+
+1. In code that doesn’t use stringr, you’ll often see paste() and paste0(). What’s the difference between the two functions? What stringr function are they equivalent to? How do the functions differ in their handling of NA?
+
+paste and paste0 differ in that paste uses a separator and paste0 leaves no blank or separator.  
+
+They are similar to the str_c() function, with sep for paste and without sep for paste0. Str_c is better since it maintains NAs instead of making them character NAs.
+
+
+2. In your own words, describe the difference between the sep and collapse arguments to str_c().
+
+collapse creates one string from the input, even it has a separator.  
+sep create multiple separate values in multiple strings.
+
+```{r}
+
+str_c(c("x", "y", "z"), collapse = ", ")
+
+str_c(c("x", "y", "z"), sep = ", ")
+
+```
+
+
+3. Use str_length() and str_sub() to extract the middle character from a string. What will you do if the string has an even number of characters?
+
+str_sub rounds up if there is an even number of characters.
+
+```{r}
+
+x <- c("Apple", "Banana", "Pear")
+
+str_sub(x, (str_length(x)/2), (str_length(x)/2))
+
+```
+
+
+4. What does str_wrap() do? When might you want to use it?
+
+str_wrap wraps strings into formatted paragraphs.  
+Not sure when I would use it since I prefer Rmarkdown.
+
+
+5. What does str_trim() do? What’s the opposite of str_trim()?
+
+str_trim removes whitespace from strings which helps if you are using str_length to pull a specific character from the string. The opposite is str_pad() to add whitespace or any character.
+
+6. Write a function that turns (e.g.) a vector c("a", "b", "c") into the string a, b, and c. Think carefully about what it should do if given a vector of length 0, 1, or 2.
+
+```{r}
+
+vec_to_string <- function(vec, sep = ",") {
+  n <- length(vec)
+  
+  if (n == 0) {""}
+  else if (n == 1) {vec}
+  else if (n == 2) {str_c(vec[[1]], "and", vec[[2]], sep = " ")}
+  else {
+     # commas after all n - 1 elements
+    not_last <- str_c(vec[seq_len(n - 1)], sep)
+    # prepend "and" to the last element
+    last <- str_c("and", vec[[n]], sep = " ")
+    # combine parts with spaces
+    str_c(c(not_last, last), collapse = " ")
+  }
+}
+
+testzero <- ""
+testone <- "a"
+testtwo <- c("a","b")
+testthree <- c("a", "b", "c")
+
+vec_to_string(testzero)
+vec_to_string(testone)
+vec_to_string(testtwo)
+vec_to_string(testthree)
+```
+
