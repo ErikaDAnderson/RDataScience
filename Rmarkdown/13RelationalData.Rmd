@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # load library
 library(tidyverse)
 library(nycflights13)
+library(fueleconomy)
 library(viridis)
 
 ```
@@ -275,3 +276,125 @@ ggplot(aes(lon, lat, color = delay)) +
   theme_bw()
 
 ```
+
+# 13.5.1 Exercises
+
+1. What does it mean for a flight to have a missing tailnum? What do the tail numbers that don’t have a matching record in planes have in common? (Hint: one variable explains ~90% of the problems.)
+
+Carriers AA and MQ do not include tail numbers.
+
+```{r}
+
+flights_misstail <- flights %>%
+  anti_join(planes, by = "tailnum") %>%
+  count(tailnum, sort = TRUE)
+
+# use semi join to find the original planes without tailnums
+flights %>%
+  semi_join(flights_misstail, by = "tailnum") %>%
+  count(carrier) %>%
+  arrange(desc(n))
+
+```
+
+
+2. Filter flights to only show flights with planes that have flown at least 100 flights.
+
+```{r}
+
+flights100 <- flights %>%
+  group_by(tailnum) %>%
+  count(tailnum) %>%
+  filter(n >= 100) 
+
+ flights %>%
+  semi_join(flights100, by = "tailnum")
+
+```
+
+
+3. Combine fueleconomy::vehicles and fueleconomy::common to find only the records for the most common models.
+
+```{r}
+
+fueleconomy::vehicles %>%
+  semi_join(common, by = c("make", "model"))
+
+```
+
+
+4. Find the 48 hours (over the course of the whole year) that have the worst delays. Cross-reference it with the weather data. Can you see any patterns?
+
+The worst day was July 23, 2013 and the best was December 1, 2013 so the temperature is lower on the best day. There was also some precip on the worst day. Generally, the worst delay day had higher humidity and wind speeds. This is just a comparison of the weather on the best and worst days and all conditions on all days should be included in a real study.
+
+```{r}
+
+# get the worst two days with the longest delays
+twodays <- flights %>%
+  group_by(month, day) %>%
+  summarize(avg_delay = sum(arr_delay + dep_delay, na.rm = TRUE)) %>%
+  mutate(twoday_delay = avg_delay + lag(avg_delay)) %>%
+  arrange(-twoday_delay) %>%
+  ungroup() 
+
+worst2days <- twodays %>%
+  slice(1:1) 
+
+best2days <- twodays %>%
+  slice(365:365) 
+
+twodays_select <- rbind(worst2days, best2days)
+
+# limit to worst two days and join to weather by destination
+twodays_select <- flights %>%
+  semi_join(., twodays_select, by = c("month", "day")) %>%
+  left_join(., weather, by = c("origin", "year", "month", "day")) %>%
+  mutate(., condition = if_else(day == 23, "worst", "best")) %>%
+  select(condition, temp, dewp, humid, wind_dir, wind_speed, precip, pressure, visib)
+
+# graph
+ggplot(twodays_select) +
+  geom_point(aes(temp, precip, color = condition))
+
+ggplot(twodays_select) +
+  geom_point(aes(humid, wind_speed, color = condition))
+
+```
+
+
+5. What does anti_join(flights, airports, by = c("dest" = "faa")) tell you? What does anti_join(airports, flights, by = c("faa" = "dest")) tell you?
+
+anti_join()
+return all rows from x where there are not matching values in y, keeping just columns from x.  
+  
+So the columns from flights are returned (that have matches in airports) in the first anti-join and the columns from airports (that have matches in flights) are returned in the second anti-join.
+
+```{r}
+
+anti_join(flights, airports, by = c("dest" = "faa"))
+
+anti_join(airports, flights, by = c("faa" = "dest"))
+
+```
+
+
+6. You might expect that there’s an implicit relationship between plane and airline, because each plane is flown by a single airline. Confirm or reject this hypothesis using the tools you’ve learned above.
+
+Yes planes with the same tail number were flown by different carriers in this data set.
+
+```{r}
+
+planes_multiple_carrier <-flights %>%
+  distinct(carrier, tailnum) %>%
+  group_by(tailnum) %>%
+  count() %>%
+  filter(n > 1)
+
+flights %>%
+  semi_join(., planes_multiple_carrier, by = "tailnum") %>%
+  select(year, month, carrier, tailnum) %>%
+  arrange(tailnum)
+  
+
+```
+
