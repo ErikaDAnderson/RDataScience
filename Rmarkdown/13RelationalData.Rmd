@@ -45,6 +45,12 @@ flights %>%
   mutate(., newkey = row_number()) %>%
   select(newkey, everything())
 
+# Jocelyn's method
+flights$row_num2 <- seq.int(nrow(flights))
+
+# another way
+flights <- rowid_to_column(flights, "row_num3")
+
 ```
 
 
@@ -79,8 +85,6 @@ ggplot2::diamonds %>%
   select(newKey, everything())
 
 ```
-
-
 
 
 3. Draw a diagram illustrating the connections between the Batting, Master, and Salaries tables in the Lahman package. 
@@ -134,7 +138,6 @@ How would you characterise the relationship between the Batting, Pitching, and F
 The batting, pitching and fielding tables have stats on each player, for each year and stint. These tables have different statistics but are organized in the same fashion. They are related through the composite primary key playerID-yearID-stint.
 
 
-
 # 13.4.6 Exercises
 
 1. Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
@@ -169,6 +172,7 @@ ggplot(flights_delay, aes(lon, lat, color = avg_delay)) +
     borders("state") +
     geom_point() +
     coord_quickmap() +
+  scale_color_viridis_c() +
   theme_bw()
 
 
@@ -200,7 +204,8 @@ flights_age <- flights %>%
   filter(!is.na(meanDelay))
   
   ggplot(flights_age) +
-  geom_point(aes(year_plane, meanDelay))
+  geom_point(aes(year_plane, meanDelay)) +
+    theme_bw()
   
 
 ```
@@ -248,6 +253,8 @@ Noisy data to see trends in weather, but specific pressures are problematic and 
 5. What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
 
 It looks like there were severe storms in the mid west. [National Weather Service Severe Weather Event](https://www.weather.gov/cle/2013_June12-13). Scroll down to see satellite map.
+
+(Grouping by origin only gives New York airports so there is less informaiton.)
 
 ```{r}
 
