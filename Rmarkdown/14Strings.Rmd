@@ -93,3 +93,216 @@ vec_to_string(testtwo)
 vec_to_string(testthree)
 ```
 
+# 14.3 Matching patterns with regular expressions
+
+## 14.3.1.1 Exercises
+
+1. Explain why each of these strings don’t match a \: "\", "\\", "\\\".
+
+One "\" is an escape from R code
+Two "\\" is an escape from R code and regex
+Three "\\\" is an escape from R code, regex, and a string making the regex
+
+
+2. How would you match the sequence "'\?
+
+```{r}
+
+x <- "\"'\\"
+str_view(x, "\"'\\\\")
+
+```
+
+
+3. What patterns will the regular expression \..\..\.. match? How would you represent it as a string?
+
+A dot represents any character except a new line, but a back slash dot represents an actual dot. So this example will find any three characters seperated by actual dots.
+
+```{r}
+
+x <- c(".a.b.c", ".a.b", ".....")
+str_view_all(x, c("\\..\\..\\.."))
+
+```
+
+14.3.2.1 Exercises
+
+1. How would you match the literal string "$^$"?
+
+```{r}
+
+str_view("$^$", "\\$\\^\\$$")
+
+```
+
+2. Given the corpus of common words in stringr::words, create regular expressions that find all words that:
+
+Start with “y”.
+
+```{r}
+str_view_all(stringr::words, "^y", match = TRUE)
+```
+
+End with “x”
+
+```{r}
+str_view_all(stringr::words, "x$", match = TRUE)
+```
+
+Are exactly three letters long. (Don’t cheat by using str_length()!)
+
+```{r}
+str_view_all(stringr::words, "^...$", match = TRUE)
+```
+
+Have seven letters or more.
+
+```{r}
+str_view_all(stringr::words, "^.......$", match = TRUE)
+```
+
+
+## 14.3.3.1 Exercises
+1. Create regular expressions to find all words that:
+
+Start with a vowel.
+```{r}
+str_view_all(stringr::words, "^[aeiou]", match = TRUE)
+```
+
+That only contain consonants. (Hint: thinking about matching “not”-vowels.)
+```{r}
+str_view_all(stringr::words, "^[^aeiou]+$", match = TRUE)
+```
+
+End with ed, but not with eed.
+```{r}
+str_view_all(stringr::words, "[^e]ed$", match = TRUE)
+```
+
+End with ing or ise.
+```{r}
+str_view_all(stringr::words, "ing$|ise$", match = TRUE)
+```
+
+2. Empirically verify the rule “i before e except after c”.
+
+No - there are always exceptions in English.
+
+```{r}
+
+str_view_all(stringr::words, "cie", match = TRUE)
+
+```
+
+
+3. Is “q” always followed by a “u”? 
+
+Yes in stringr words dataset.
+```{r}
+
+str_view_all(stringr::words, "q[^u]", match = TRUE)
+
+```
+
+
+4. Write a regular expression that matches a word if it’s probably written in British English, not American English.
+
+I used "our: as an example as American English uses "or".
+
+```{r}
+
+str_view_all(stringr::words, "..+our$", match = TRUE)
+
+```
+
+
+
+5. Create a regular expression that will match telephone numbers as commonly written in your country.
+```{r}
+
+str_view_all(c("250-123-7456", "25-45-62-58"), "\\d\\d\\d-\\d\\d\\d-\\d\\d\\d\\d", match = TRUE)
+
+```
+
+## 14.3.4.1 Exercises
+1. Describe the equivalents of ?, +, * in {m,n} form.
+
+? = {0,1}  
+
++ = {1,}  
+
+* = {0,}  
+
+2. Describe in words what these regular expressions match: (read carefully to see if I’m using a regular expression or a string that defines a regular expression.)
+
+^.*$ = anchored to start, zero to more characters, before end  
+
+"\\{.+\\}" = any string with one or more characters surrounded by curly brackets   
+
+\d{4}-\d{2}-\d{2} = four digits, dash, two digits, dash, two digits  
+
+"\\\\{4}" = back slash at least 4 times  
+
+
+3. Create regular expressions to find all words that:
+
+Start with three consonants.
+```{r}
+str_view_all(stringr::words, "^[^aeiou]{3}", match = TRUE)
+```
+
+
+Have three or more vowels in a row.
+```{r}
+str_view_all(stringr::words, "[aeiou]{3,}", match = TRUE)
+```
+
+Have two or more vowel-consonant pairs in a row.
+```{r}
+str_view_all(stringr::words, "([aeiou][^aeiou]){2,}", match = TRUE)
+
+```
+
+
+4. Solve the beginner regexp crosswords at https://regexcrossword.com/challenges/beginner.
+
+Started with tuorial so I could figure it out.
+
+## 14.3.5 Grouping and Backreferences Exercises
+
+1. Describe, in words, what these expressions will match:
+
+(.)\1\1 Matches one character that repeats itself three times
+
+"(.)(.)\\2\\1" Not sure how reverse grouped back references work, but Jrnold says "A pair of characters followed by the same pair of characters in reversed order. E.g. "abba"."
+See https://jrnold.github.io/r4ds-exercise-solutions/strings.html#matching-patterns-with-regular-expressions
+
+
+(..)\1 any two characters repeated once
+
+"(.).\\1.\\1" Macthes a character followed by any character, followed by itself again, then any character, then itself. For example: 19181
+
+"(.)(.)(.).*\\3\\2\\1" Again, not sure why there are 3,2,1 groups and how it gets reversed.
+
+Jrnold says "Three characters followed by zero or more characters of any kind followed by the same three characters but in reverse order. E.g. "abcsgasgddsadgsdgcba" or "abccba" or "abc1cba"."
+
+2. Construct regular expressions to match words that:
+
+Start and end with the same character.
+```{r}
+str_view_all(stringr::words, "^(.)(.*\\1$)", match = TRUE)
+```
+
+
+Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)
+```{r}
+str_view_all(stringr::words, "([a-z][a-z]).*\\1", match = TRUE)
+```
+
+
+Contain one letter repeated in at least three places (e.g. “eleven” contains three “e”s.)
+```{r}
+str_view_all(stringr::words, "([a-z]).*\\1.*\\1", match = TRUE)
+```
+
