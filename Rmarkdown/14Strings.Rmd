@@ -109,6 +109,12 @@ Three "\\\" is an escape from R code, regex, and a string making the regex
 ```{r}
 
 x <- "\"'\\"
+writeLines(x)
+
+# another way to make it
+y <- paste0("\"", "'", "\\")
+writeLines(y)
+
 str_view(x, "\"'\\\\")
 
 ```
@@ -152,13 +158,15 @@ str_view_all(stringr::words, "x$", match = TRUE)
 Are exactly three letters long. (Don’t cheat by using str_length()!)
 
 ```{r}
-str_view_all(stringr::words, "^...$", match = TRUE)
+str_view_all(stringr::words, "^[a-z]{3}$", match = TRUE)
+
 ```
 
 Have seven letters or more.
 
 ```{r}
 str_view_all(stringr::words, "^.......$", match = TRUE)
+str_view_all(stringr::words, "^[:alpha:]{7}$", match = TRUE) # matches uppper and lower case
 ```
 
 
@@ -167,12 +175,14 @@ str_view_all(stringr::words, "^.......$", match = TRUE)
 
 Start with a vowel.
 ```{r}
-str_view_all(stringr::words, "^[aeiou]", match = TRUE)
+str_view_all(stringr::words, "^[aeiou]", match = TRUE) # only matches lower cases
+str_view_all(stringr::words, "^[aeiouAEIOU]", match = TRUE) # matches both cases
 ```
 
 That only contain consonants. (Hint: thinking about matching “not”-vowels.)
 ```{r}
 str_view_all(stringr::words, "^[^aeiou]+$", match = TRUE)
+str_view_all(stringr::words, "^[^aeiouAEIOU]", match = TRUE) # matches both cases
 ```
 
 End with ed, but not with eed.
@@ -192,6 +202,7 @@ No - there are always exceptions in English.
 ```{r}
 
 str_view_all(stringr::words, "cie", match = TRUE)
+str_view_all(stringr::words, "[^c]ei", match = TRUE)
 
 ```
 
@@ -213,6 +224,7 @@ I used "our: as an example as American English uses "or".
 ```{r}
 
 str_view_all(stringr::words, "..+our$", match = TRUE)
+str_view_all(stringr::words, ".{2,}our$", match = TRUE)
 
 ```
 
@@ -222,6 +234,7 @@ str_view_all(stringr::words, "..+our$", match = TRUE)
 ```{r}
 
 str_view_all(c("250-123-7456", "25-45-62-58"), "\\d\\d\\d-\\d\\d\\d-\\d\\d\\d\\d", match = TRUE)
+str_view_all(c("250-123-7456", "25-45-62-58"), "\\d{3}-\\d{3}-\\d{4}", match = TRUE)
 
 ```
 
@@ -249,13 +262,14 @@ str_view_all(c("250-123-7456", "25-45-62-58"), "\\d\\d\\d-\\d\\d\\d-\\d\\d\\d\\d
 
 Start with three consonants.
 ```{r}
-str_view_all(stringr::words, "^[^aeiou]{3}", match = TRUE)
+str_view_all(stringr::words, "^[^aeiouy]{3}", match = TRUE) #MO wants y included
 ```
 
 
 Have three or more vowels in a row.
 ```{r}
-str_view_all(stringr::words, "[aeiou]{3,}", match = TRUE)
+str_view_all(stringr::words, "[aeiou]{3,}", match = TRUE) # include upper case, if needed
+str_view_all(stringr::words, "[aeiouy]{3,}", match = TRUE) # MO wants y included
 ```
 
 Have two or more vowel-consonant pairs in a row.
@@ -267,7 +281,7 @@ str_view_all(stringr::words, "([aeiou][^aeiou]){2,}", match = TRUE)
 
 4. Solve the beginner regexp crosswords at https://regexcrossword.com/challenges/beginner.
 
-Started with tuorial so I could figure it out.
+Started with tuorial, so I could figure it out.
 
 ## 14.3.5 Grouping and Backreferences Exercises
 
@@ -275,15 +289,15 @@ Started with tuorial so I could figure it out.
 
 (.)\1\1 Matches one character that repeats itself three times
 
-"(.)(.)\\2\\1" Not sure how reverse grouped back references work, but Jrnold says "A pair of characters followed by the same pair of characters in reversed order. E.g. "abba"."
+"(.)(.)\\2\\1"  Jrnold says "A pair of characters followed by the same pair of characters in reversed order. E.g. "abba"."
 See https://jrnold.github.io/r4ds-exercise-solutions/strings.html#matching-patterns-with-regular-expressions
 
 
-(..)\1 any two characters repeated once
+(..)\1 any two characters repeated once ie. bebe
 
-"(.).\\1.\\1" Macthes a character followed by any character, followed by itself again, then any character, then itself. For example: 19181
+"(.).\\1.\\1" Macthes a character followed by any character, followed by itself again, then any character, then itself. For example: 1a1b1
 
-"(.)(.)(.).*\\3\\2\\1" Again, not sure why there are 3,2,1 groups and how it gets reversed.
+"(.)(.)(.).*\\3\\2\\1" ie. abclalalacba
 
 Jrnold says "Three characters followed by zero or more characters of any kind followed by the same three characters but in reverse order. E.g. "abcsgasgddsadgsdgcba" or "abccba" or "abc1cba"."
 
@@ -291,13 +305,13 @@ Jrnold says "Three characters followed by zero or more characters of any kind fo
 
 Start and end with the same character.
 ```{r}
-str_view_all(stringr::words, "^(.)(.*\\1$)", match = TRUE)
+str_view_all(stringr::words, "^(.).*\\1$", match = TRUE)
 ```
 
 
 Contain a repeated pair of letters (e.g. “church” contains “ch” repeated twice.)
 ```{r}
-str_view_all(stringr::words, "([a-z][a-z]).*\\1", match = TRUE)
+str_view_all(stringr::words, "([a-z][a-z]).*\\1", match = TRUE) # lower case only in this example
 ```
 
 
