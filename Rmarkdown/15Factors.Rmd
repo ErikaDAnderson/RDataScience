@@ -35,4 +35,4 @@ A group of DFO coworkers decided to work together to complete the exercises in [
 # 15.5.1 Exercises
 1. How have the proportions of people identifying as Democrat, Republican, and Independent changed over time?
 
-2. How could you collapse rincome into a small set of categories?
+2. ÐHow could you collapse rincome into a small set of categories?
