@@ -13,7 +13,7 @@ library(tidyverse)
 
 ```
 
-A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
+A group of DFO coworkers decided to work together to complete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
 
 # 12.2.1 Exercises
 

@@ -5,7 +5,7 @@ date: "2019-03-27"
 output: html_document
 ---
 
-A group of DFO coworkers decided to work together to compete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) by Jeffrey Arnold on Git Hub.
+A group of DFO coworkers decided to work together to complete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. Many of the solutions to the exercises are available online, with the most [extensive version](https://jrnold.github.io/r4ds-exercise-solutions/index.html) by Jeffrey Arnold on Git Hub.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
