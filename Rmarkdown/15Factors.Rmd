@@ -1,0 +1,38 @@
+---
+title: "15 Factors"
+author: "Erika Anderson"
+date: "August 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse)
+library(forcats)
+
+```
+
+A group of DFO coworkers decided to work together to complete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
+
+# 15 Factors
+
+# 15.3.1 Exercise
+1. Explore the distribution of rincome (reported income). What makes the default bar chart hard to understand? How could you improve the plot?
+
+2. What is the most common relig in this survey? What’s the most common partyid?
+
+3. Which relig does denom (denomination) apply to? How can you find out with a table? How can you find out with a visualisation?
+
+# 15.4.1 Exercises
+1. There are some suspiciously high numbers in tvhours. Is the mean a good summary?
+
+2. For each factor in gss_cat identify whether the order of the levels is arbitrary or principled.
+
+3. Why did moving “Not applicable” to the front of the levels move it to the bottom of the plot?
+
+# 15.5.1 Exercises
+1. How have the proportions of people identifying as Democrat, Republican, and Independent changed over time?
+
+2. How could you collapse rincome into a small set of categories?
