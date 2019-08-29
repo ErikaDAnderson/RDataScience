@@ -122,7 +122,7 @@ str_view(x, "\"'\\\\")
 
 3. What patterns will the regular expression \..\..\.. match? How would you represent it as a string?
 
-A dot represents any character except a new line, but a back slash dot represents an actual dot. So this example will find any three characters seperated by actual dots.
+A dot represents any character except a new line, but a back slash dot represents an actual dot. So this example will find any three characters separated by actual dots.
 
 ```{r}
 
@@ -182,7 +182,7 @@ str_view_all(stringr::words, "^[aeiouAEIOU]", match = TRUE) # matches both cases
 That only contain consonants. (Hint: thinking about matching “not”-vowels.)
 ```{r}
 str_view_all(stringr::words, "^[^aeiou]+$", match = TRUE)
-str_view_all(stringr::words, "^[^aeiouAEIOU]", match = TRUE) # matches both cases
+str_view_all(stringr::words, "^[^aeiouAEIOU]+$", match = TRUE) # matches both cases
 ```
 
 End with ed, but not with eed.
@@ -281,7 +281,7 @@ str_view_all(stringr::words, "([aeiou][^aeiou]){2,}", match = TRUE)
 
 4. Solve the beginner regexp crosswords at https://regexcrossword.com/challenges/beginner.
 
-Started with tuorial, so I could figure it out.
+Started with tutorial, so I could figure it out.
 
 ## 14.3.5 Grouping and Backreferences Exercises
 
@@ -295,7 +295,7 @@ See https://jrnold.github.io/r4ds-exercise-solutions/strings.html#matching-patte
 
 (..)\1 any two characters repeated once ie. bebe
 
-"(.).\\1.\\1" Macthes a character followed by any character, followed by itself again, then any character, then itself. For example: 1a1b1
+"(.).\\1.\\1" Matches a character followed by any character, followed by itself again, then any character, then itself. For example: 1a1b1
 
 "(.)(.)(.).*\\3\\2\\1" ie. abclalalacba
 
@@ -319,4 +319,321 @@ Contain one letter repeated in at least three places (e.g. “eleven” contains
 ```{r}
 str_view_all(stringr::words, "([a-z]).*\\1.*\\1", match = TRUE)
 ```
+
+# 14.4.1 Detect matches
+
+1. For each of the following challenges, try solving it by using both a single regular expression, and a combination of multiple str_detect() calls.
+
+- Find all words that start or end with x.
+
+```{r}
+
+str_subset(words, "^x|x$")
+
+start_x <- str_detect(words, "^x")
+end_x <- str_detect(words, "x$")
+words[start_x | end_x]
+
+```
+
+
+- Find all words that start with a vowel and end with a consonant.
+
+```{r}
+start_vowel <- str_detect(words, "^[aeiou]")
+end_consonant <- str_detect(words, "[^aeiou]$")
+words[start_vowel & end_consonant]
+
+str_subset(words, "^[aeiou].+[^aeiou]$")
+```
+
+
+- Are there any words that contain at least one of each different vowel?
+
+```{r}
+
+# not sure how to do it with with one expression since the order changes so it would be many combinations
+
+# the simpler way is
+words[str_detect(words, "a") &
+      str_detect(words, "e") &
+      str_detect(words, "i") &
+      str_detect(words, "o") &
+      str_detect(words, "u")]
+```
+
+
+2. What word has the highest number of vowels? What word has the highest proportion of vowels? (Hint: what is the denominator?)
+
+```{r}
+
+# use highest value of vowels to extract from the data
+words[max(str_count(words, "[aeiou]"))]
+
+# highest proportion of consonants
+words[max(str_count(words, "[^aeiou]") / str_length(words))]
+```
+
+
+
+# 14.4.2 Extract matches
+
+1. In the previous example, you might have noticed that the regular expression matched “flickered”, which is not a colour. Modify the regex to fix the problem.
+
+First tried the pattern with one space. This omitted the colors at the end of a sentence. Looked up the word boundary symbol backslash b, and needed to escape.
+
+```{r}
+
+# make color pattern
+colours <- str_c("\\b", c("red", "orange", " +yellow +", " +green +", " +blue", " +purple +"), "\\b")
+colour_match <- str_c(colours, collapse = "|")
+colour_match
+
+# find sentence with issue
+more <- sentences[str_count(sentences, colour_match) > 1]
+str_view_all(more, colour_match)
+```
+
+
+2. From the Harvard sentences data, extract:
+
+- The first word from each sentence.
+```{r}
+head(str_extract(sentences, "[a-zA-Z]+"))
+```
+
+- All words ending in ing.
+```{r}
+
+# make pattern that matches words ending in ing
+pattern <- "\\b[a-zA-Z]+ing\\b"
+
+# detect which sentences have ing words
+sentences_ing <- str_detect(sentences, pattern)
+
+# extract unique words from those sentences
+unique(unlist(str_extract_all(sentences[sentences_ing], pattern)))
+```
+
+- All plurals.
+
+This is an oversimplification since not all plurals end in s and some words ending in s are not plural. Not sure how to do it without a list of plural words given.
+
+```{r}
+# make a pattern to represent words ending in s
+pattern <- "\\b[a-zA-Z]+s\\b"
+
+# detect which sentences that have words ending in s
+sentences_pl <- str_detect(sentences, pattern)
+
+# extract plural words from those sentences
+unique(unlist(str_extract_all(sentences[sentences_pl], pattern)))
+```
+
+
+# 14.4.3 Grouped Matches
+
+1. Find all words that come after a “number” like “one”, “two”, “three” etc. Pull out both the number and the word.
+
+```{r}
+pattern <- "(one|two|three|four|five|six|seven|eight|nine|ten) (\\w*\\b)"
+subsetSentences <- (str_subset(sentences, pattern))
+
+str_match(subsetSentences, pattern)
+
+# other way
+sentences_tibb <- tibble(sentence_col = subsetSentences)
+
+sentences_tibb %>%
+  tidyr::extract(sentence_col, c("number", "item"), pattern, remove = FALSE) 
+
+```
+
+
+2. Find all contractions. Separate out the pieces before and after the apostrophe.
+
+```{r}
+
+pattern <- "(\\b[a-zA-Z]+)(')([a-zA-z]\\b)"
+subsetSentences <- (str_subset(sentences, pattern))
+
+str_match(subsetSentences, pattern)
+
+# other way
+sentences_tibb <- tibble(sentence_col = subsetSentences)
+
+sentences_tibb %>%
+  tidyr::extract(sentence_col, c("firstWord", "apostrophe", "secondWord"), pattern, remove = FALSE) 
+
+```
+
+
+# 14.4.4 Replacing Matches
+
+1. Replace all forward slashes in a string with backslashes.
+```{r}
+# make sentence with slashes
+data <- "This is / an example of / a string / with slashes."
+
+# replace all
+# need to use four slashes for literal slash
+str_replace_all(data, "/", "\\\\")
+
+# print it as you would see it
+writeLines(str_replace_all(data, "/", "\\\\"))
+
+```
+
+
+2. Implement a simple version of str_to_lower() using replace_all().
+
+
+```{r}
+
+head(sentences)
+
+# this is the easier way
+head(str_to_lower(sentences))
+
+# need to make replacements
+# I copied from website
+replacements <- c(
+  "A" = "a", "B" = "b", "C" = "c", "D" = "d", "E" = "e",
+  "F" = "f", "G" = "g", "H" = "h", "I" = "i", "J" = "j",
+  "K" = "k", "L" = "l", "M" = "m", "N" = "n", "O" = "o",
+  "P" = "p", "Q" = "q", "R" = "r", "S" = "s", "T" = "t",
+  "U" = "u", "V" = "v", "W" = "w", "X" = "x", "Y" = "y",
+  "Z" = "z"
+)
+
+# with str_replace_all
+head(str_replace_all(sentences, replacements))
+
+```
+
+
+3. Switch the first and last letters in words. Which of those strings are still words?
+
+```{r}
+
+# switch first and last letters
+switch <- words %>%
+  str_replace_all("^([a-zA-Z])(.*)([a-zA-Z])$", "\\3\\2\\1")
+
+# which are words still
+intersect(words, switch)
+
+```
+
+
+# 14.4.5 Splitting
+
+1. Split up a string like "apples, pears, and bananas" into individual components.
+```{r}
+x <- c("apple", "pear", "banana")
+
+# split based on boundary and simplfy to matrix
+str_split(x, boundary(), simplify = TRUE)
+```
+
+
+2. Why is it better to split up by boundary("word") than " "?
+
+The programmers have thought of all the cases that don't work with space and wrote that into boundary("word). For example, period is included with the last word in the first example, but not in the last example using boundary("word").
+
+```{r}
+head(sentences) %>%
+str_split(., " ", simplify = TRUE)
+
+head(sentences) %>%
+str_split(., boundary("word"), simplify = TRUE)
+```
+
+
+3. What does splitting with an empty string ("") do? Experiment, and then read the documentation.
+
+It looks like it separates everything out into single characters.The help file says: "An empty pattern, "", is equivalent to boundary("character")."
+
+```{r}
+head(sentences) %>%
+str_split(., "", simplify = TRUE)
+
+
+```
+
+
+# 14.5.1 Other Types of Regular Expressions
+
+1. How would you find all strings containing \ with regex() vs. with fixed()?
+  
+Regex is the default.Use fixed around pattern to use it. Fixed is faster but has issues with more complicated searches. The back slash does not need as many escapes since there is no regex to escape from...
+
+```{r }
+x <- c("ap\\ple", "pear", "ba\\nana")
+writeLines(x)
+
+str_subset(x, "\\\\")
+str_subset(x, fixed("\\"))
+
+```
+
+
+2. What are the five most common words in sentences?
+
+```{r}
+
+# my way
+ allWords <- str_extract_all(sentences, boundary("word"))
+
+allWords_tibb <- as.tibble(unlist(allWords))
+
+allWords_tibb %>%
+  mutate(lowerCase = str_to_lower(value)) %>%
+  group_by(lowerCase) %>%
+  count() %>%
+  ungroup() %>%
+  arrange(-n) %>%
+  slice(1:5)
+
+# from the answer key in concise code
+tibble(word = unlist(str_extract_all(sentences, boundary("word")))) %>%
+  mutate(word = str_to_lower(word)) %>%
+   count(word, sort = TRUE) %>%
+  head(5)
+
+
+```
+
+# 14.7 stringi
+
+1. Find the stringi functions that:
+
+- Count the number of words.
+```{r}
+require(stringi)
+
+x <- "This is an example sentence"
+
+stri_count_words(x)
+```
+
+- Find duplicated strings.
+```{r}
+x <- c("this is an duplicate sentence", "This is not", "this is an duplicate sentence")
+
+x[stri_duplicated(x)]
+```
+
+- Generate random text.
+```{r}
+
+stri_rand_strings(5, 10)
+
+```
+
+2. How do you control the language that stri_sort() uses for sorting?
+
+Use locale option within stri_sort. Use locale option within stri_sort. Get list of locales possible using stri_locale_list().
+
+
 
