@@ -329,6 +329,7 @@ str_view_all(stringr::words, "([a-z]).*\\1.*\\1", match = TRUE)
 ```{r}
 
 str_subset(words, "^x|x$")
+words[str_detect(words, "^x|x$")]
 
 start_x <- str_detect(words, "^x")
 end_x <- str_detect(words, "x$")
@@ -344,6 +345,10 @@ start_vowel <- str_detect(words, "^[aeiou]")
 end_consonant <- str_detect(words, "[^aeiou]$")
 words[start_vowel & end_consonant]
 
+# MO method
+str_subset(words, "^[aeiou]") %>%
+  str_subset("[aeiou]$", negate = TRUE)
+
 str_subset(words, "^[aeiou].+[^aeiou]$")
 ```
 
@@ -352,14 +357,21 @@ str_subset(words, "^[aeiou].+[^aeiou]$")
 
 ```{r}
 
-# not sure how to do it with with one expression since the order changes so it would be many combinations
+# hard to do with one expression since order changes
 
-# the simpler way is
+# EA method
 words[str_detect(words, "a") &
       str_detect(words, "e") &
       str_detect(words, "i") &
       str_detect(words, "o") &
       str_detect(words, "u")]
+
+# MO works
+str_subset(words, "a") %>%
+  str_subset("e") %>%
+  str_subset("i") %>%
+  str_subset("o") %>%
+  str_subset("u")
 ```
 
 
@@ -368,10 +380,23 @@ words[str_detect(words, "a") &
 ```{r}
 
 # use highest value of vowels to extract from the data
-words[max(str_count(words, "[aeiou]"))]
+df_tibb <- tibble(words)
+df_tibb %>%
+mutate(NumVowel = str_count(words, "[aeiou]")) %>%
+  filter(NumVowel == max(NumVowel)) %>%
+  pull(words)
 
 # highest proportion of consonants
 words[max(str_count(words, "[^aeiou]") / str_length(words))]
+
+# MO
+df_tibb %>%
+  mutate(NumVowel = str_count(words, "[aeiou]"),
+         WordLen = str_length(words),
+         Prop = NumVowel/WordLen) %>%
+  filter(Prop == max(Prop)) %>%
+  pull(words)
+  
 ```
 
 
@@ -385,13 +410,18 @@ First tried the pattern with one space. This omitted the colors at the end of a 
 ```{r}
 
 # make color pattern
-colours <- str_c("\\b", c("red", "orange", " +yellow +", " +green +", " +blue", " +purple +"), "\\b")
+colours <- str_c("\\b", c("red", "orange", "yellow", "green", "blue", " purple"), "\\b")
 colour_match <- str_c(colours, collapse = "|")
 colour_match
 
 # find sentence with issue
 more <- sentences[str_count(sentences, colour_match) > 1]
-str_view_all(more, colour_match)
+check <- tibble(smallSentences = str_subset(sentences, colour_match)) %>%
+  slice(24:26) %>%
+  pull(smallSentences)
+check
+
+str_view_all(check, colour_match)
 ```
 
 
@@ -400,19 +430,23 @@ str_view_all(more, colour_match)
 - The first word from each sentence.
 ```{r}
 head(str_extract(sentences, "[a-zA-Z]+"))
+head(str_extract(sentences, "[:alpha:]+"))
 ```
 
 - All words ending in ing.
 ```{r}
 
 # make pattern that matches words ending in ing
-pattern <- "\\b[a-zA-Z]+ing\\b"
+pattern <- "[a-zA-Z]+ing"
 
 # detect which sentences have ing words
 sentences_ing <- str_detect(sentences, pattern)
 
 # extract unique words from those sentences
 unique(unlist(str_extract_all(sentences[sentences_ing], pattern)))
+
+# MO
+unique(str_extract_all(sentences[sentences_ing], pattern))
 ```
 
 - All plurals.
@@ -427,7 +461,14 @@ pattern <- "\\b[a-zA-Z]+s\\b"
 sentences_pl <- str_detect(sentences, pattern)
 
 # extract plural words from those sentences
-unique(unlist(str_extract_all(sentences[sentences_pl], pattern)))
+df <- unique(unlist(str_extract_all(sentences[sentences_pl], pattern)))
+
+# remove words under 3 letters
+df_tibb <- tibble(df)
+df_tibb %>%
+  mutate(Wordlen = str_length(df)) %>%
+  filter(Wordlen > 4)
+
 ```
 
 
@@ -436,7 +477,7 @@ unique(unlist(str_extract_all(sentences[sentences_pl], pattern)))
 1. Find all words that come after a “number” like “one”, “two”, “three” etc. Pull out both the number and the word.
 
 ```{r}
-pattern <- "(one|two|three|four|five|six|seven|eight|nine|ten) (\\w*\\b)"
+pattern <- "(one|two|three|four|five|six|seven|eight|nine|ten) (\\w*)"
 subsetSentences <- (str_subset(sentences, pattern))
 
 str_match(subsetSentences, pattern)
@@ -445,7 +486,7 @@ str_match(subsetSentences, pattern)
 sentences_tibb <- tibble(sentence_col = subsetSentences)
 
 sentences_tibb %>%
-  tidyr::extract(sentence_col, c("number", "item"), pattern, remove = FALSE) 
+  tidyr::extract(sentence_col, c("number", "item"), pattern, remove = TRUE) 
 
 ```
 
@@ -454,7 +495,8 @@ sentences_tibb %>%
 
 ```{r}
 
-pattern <- "(\\b[a-zA-Z]+)(')([a-zA-z]\\b)"
+pattern <- "([a-zA-Z]+)(')([a-zA-z])"
+
 subsetSentences <- (str_subset(sentences, pattern))
 
 str_match(subsetSentences, pattern)
@@ -463,7 +505,7 @@ str_match(subsetSentences, pattern)
 sentences_tibb <- tibble(sentence_col = subsetSentences)
 
 sentences_tibb %>%
-  tidyr::extract(sentence_col, c("firstWord", "apostrophe", "secondWord"), pattern, remove = FALSE) 
+  tidyr::extract(sentence_col, c("firstWord", "apostrophe", "secondWord"), pattern, remove = TRUE) 
 
 ```
 
@@ -518,10 +560,13 @@ head(str_replace_all(sentences, replacements))
 
 # switch first and last letters
 switch <- words %>%
-  str_replace_all("^([a-zA-Z])(.*)([a-zA-Z])$", "\\3\\2\\1")
+  str_replace("^([a-zA-Z])(.*)([a-zA-Z])$", "\\3\\2\\1")
 
 # which are words still
 intersect(words, switch)
+
+# or check this way
+switch[switch %in% words]
 
 ```
 
@@ -530,10 +575,10 @@ intersect(words, switch)
 
 1. Split up a string like "apples, pears, and bananas" into individual components.
 ```{r}
-x <- c("apple", "pear", "banana")
+x <- "apples, pears, and bananas"
 
 # split based on boundary and simplfy to matrix
-str_split(x, boundary(), simplify = TRUE)
+str_split(x, boundary("word"), simplify = TRUE)
 ```
 
 
