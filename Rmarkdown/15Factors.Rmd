@@ -21,18 +21,168 @@ A group of DFO coworkers decided to work together to complete the exercises in [
 # 15.3.1 Exercise
 1. Explore the distribution of rincome (reported income). What makes the default bar chart hard to understand? How could you improve the plot?
 
+```{r}
+unique(gss_cat$rincome)
+
+ggplot(gss_cat, aes(rincome)) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# overlapping category labels make this hard to understand
+# should order the levels by value
+# combine the factors that are no answers
+
+# try it again after completing chapter
+gss_cat_mod <- gss_cat %>%
+  mutate(income_simple = fct_collapse(rincome,
+    Unknown = c("Not applicable", "No answer", "Don't know", "Refused"),
+    "More than 25 000" = c("$25000 or more"),
+    "$2000 to $25000" = c("$20000 - 24999", "$15000 - 19999", "$10000 - 14999", "$8000 to 9999",
+                          "$7000 to 7999", "$6000 to 6999", "$5000 to 5999", "$4000 to 4999",
+                          "$3000 to 3999" ),
+    "Less than $3000" = c("$1000 to 2999", "Lt $1000")
+  ))
+
+# graph the collapsed factors
+ggplot(gss_cat_mod, aes(income_simple)) +
+  geom_bar() +
+  labs(x = "Grouped income") 
+
+# another way, less precise but faster
+ggplot(gss_cat, aes(fct_lump(rincome, n = 5))) +
+  geom_bar() +
+  labs(x = "Grouped income") 
+
+```
+
+
 2. What is the most common relig in this survey? What’s the most common partyid?
 
+```{r}
+
+gss_cat %>%
+  count(relig) %>%
+  arrange(-n)
+```
+```{r}
+
+gss_cat %>%
+  count(partyid) %>%
+  arrange(-n)
+```
+
+
 3. Which relig does denom (denomination) apply to? How can you find out with a table? How can you find out with a visualisation?
+
+Protestant
+
+```{r}
+
+gss_cat %>%
+  group_by(relig, denom) %>%
+  count() %>%
+  arrange(-n)
+
+ggplot(gss_cat, aes(denom, relig)) +
+         geom_point() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
+```
+
 
 # 15.4.1 Exercises
 1. There are some suspiciously high numbers in tvhours. Is the mean a good summary?
 
+No
+
+```{r}
+
+ggplot(gss_cat, aes(fct_reorder(relig, tvhours, mean), tvhours)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
 2. For each factor in gss_cat identify whether the order of the levels is arbitrary or principled.
 
+
+```{r}
+
+# find factors
+str(gss_cat)
+
+levels(gss_cat$marital) # arbitrary
+levels(gss_cat$race) # arbitrary
+levels(gss_cat$rincome) # principled
+levels(gss_cat$partyid) # arbitrary
+levels(gss_cat$relig) # arbitrary
+levels(gss_cat$denom) # arbitrary
+
+
+```
+
+
 3. Why did moving “Not applicable” to the front of the levels move it to the bottom of the plot?
+
+The first level goes on the y axis in the first stop.
+
+```{r}
+
+# given dataset
+rincome_summary <- gss_cat %>%
+  group_by(rincome) %>%
+  summarise(
+    age = mean(age, na.rm = TRUE),
+    tvhours = mean(tvhours, na.rm = TRUE),
+    n = n()
+  )
+
+# current levels of rincome
+levels(rincome_summary$rincome)
+
+# relevel
+relevelled <- rincome_summary %>%
+  mutate(rincome = fct_relevel(rincome, "Not applicable"))
+
+levels(relevelled$rincome)
+
+```
+
 
 # 15.5.1 Exercises
 1. How have the proportions of people identifying as Democrat, Republican, and Independent changed over time?
 
+```{r}
+
+gss_cat_collapse <- gss_cat %>%
+  mutate(partyid2 = fct_collapse(partyid,
+    other = c("No answer", "Don't know", "Other party"),
+    rep = c("Strong republican", "Not str republican"),
+    ind = c("Ind,near rep", "Independent", "Ind,near dem"),
+    dem = c("Not str democrat", "Strong democrat")
+  )) %>%
+  count(year, partyid2) %>%
+  group_by(year) %>%
+  mutate(prop = n / sum(n))
+
+
+# graph over time
+ggplot(gss_cat_collapse, aes(year, n, color = fct_reorder2(partyid2, year, prop))) +
+  geom_point() +
+  geom_line() +
+  labs(colour = "Party")
+
+```
+
+
 2. ÐHow could you collapse rincome into a small set of categories?
+
+```{r}
+
+gss_cat %>%
+  mutate(rincome = fct_lump(rincome, n = 5)) %>%
+  count(rincome, sort = TRUE)
+
+```
+
