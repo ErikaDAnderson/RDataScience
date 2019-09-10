@@ -630,7 +630,7 @@ str_subset(x, fixed("\\"))
 # my way
  allWords <- str_extract_all(sentences, boundary("word"))
 
-allWords_tibb <- as.tibble(unlist(allWords))
+allWords_tibb <- enframe(unlist(allWords), name = NULL)
 
 allWords_tibb %>%
   mutate(lowerCase = str_to_lower(value)) %>%
