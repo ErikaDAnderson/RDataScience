@@ -51,7 +51,8 @@ ggplot(gss_cat_mod, aes(income_simple)) +
 # another way, less precise but faster
 ggplot(gss_cat, aes(fct_lump(rincome, n = 5))) +
   geom_bar() +
-  labs(x = "Grouped income") 
+  labs(x = "Grouped income") +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 
@@ -86,6 +87,11 @@ gss_cat %>%
 ggplot(gss_cat, aes(denom, relig)) +
          geom_point() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+#JN
+ggplot(gss_cat, aes(relig)) +
+  geom_bar(aes(fill = denom)) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
   
 ```
 
@@ -112,13 +118,12 @@ ggplot(gss_cat, aes(fct_reorder(relig, tvhours, mean), tvhours)) +
 # find factors
 str(gss_cat)
 
-levels(gss_cat$marital) # arbitrary
-levels(gss_cat$race) # arbitrary
+levels(gss_cat$marital) # arbitrary or JN/MO says principled
+levels(gss_cat$race) # arbitrary or JN/MO principled
 levels(gss_cat$rincome) # principled
 levels(gss_cat$partyid) # arbitrary
-levels(gss_cat$relig) # arbitrary
+levels(gss_cat$relig) # arbitrary and everyone agrees!
 levels(gss_cat$denom) # arbitrary
-
 
 ```
 
@@ -126,6 +131,7 @@ levels(gss_cat$denom) # arbitrary
 3. Why did moving “Not applicable” to the front of the levels move it to the bottom of the plot?
 
 The first level goes on the y axis in the first stop.
+It gives an integer value of one. (JN)
 
 ```{r}
 
@@ -173,10 +179,12 @@ ggplot(gss_cat_collapse, aes(year, n, color = fct_reorder2(partyid2, year, prop)
   geom_line() +
   labs(colour = "Party")
 
+# fct_reorder2 uses y values to reorder
+
 ```
 
 
-2. ÐHow could you collapse rincome into a small set of categories?
+2. How could you collapse rincome into a small set of categories?
 
 ```{r}
 
