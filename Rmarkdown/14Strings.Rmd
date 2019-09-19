@@ -611,7 +611,7 @@ str_split(., "", simplify = TRUE)
 
 1. How would you find all strings containing \ with regex() vs. with fixed()?
   
-Regex is the default.Use fixed around pattern to use it. Fixed is faster but has issues with more complicated searches. The back slash does not need as many escapes since there is no regex to escape from...
+Regex is the default.Use fixed around pattern to use it. Fixed is faster, but has issues with more complicated searches. The back slash does not need as many escapes since there is no regex to escape from...
 
 ```{r }
 x <- c("ap\\ple", "pear", "ba\\nana")
@@ -628,7 +628,7 @@ str_subset(x, fixed("\\"))
 ```{r}
 
 # my way
- allWords <- str_extract_all(sentences, boundary("word"))
+allWords <- str_extract_all(sentences, boundary("word"))
 
 allWords_tibb <- enframe(unlist(allWords), name = NULL)
 
@@ -639,6 +639,20 @@ allWords_tibb %>%
   ungroup() %>%
   arrange(-n) %>%
   slice(1:5)
+
+# Michael's
+allWords_M <- str_extract_all(sentences, boundary("word"), simplify = TRUE)
+
+# omit blanks
+x <- allWords_M[allWords_M != ""]
+
+x <- tolower(x)
+
+w <- tibble(x) %>%
+  group_by(x) %>%
+  count()
+
+# arrange in the view by n
 
 # from the answer key in concise code
 tibble(word = unlist(str_extract_all(sentences, boundary("word")))) %>%
