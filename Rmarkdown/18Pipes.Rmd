@@ -1,0 +1,26 @@
+---
+title: "18 Pipes"
+author: "Erika Anderson"
+date: "October 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages, includes pipes
+library(magrittr) # pipes only
+
+```
+
+A group of DFO coworkers decided to work together to complete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
+
+# 17 Program Introduction
+
+This section has no exercises.
+ 
+#18 Pipes
+ 
+This section has no exercises.
+ 
