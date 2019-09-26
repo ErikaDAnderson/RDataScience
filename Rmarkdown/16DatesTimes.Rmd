@@ -13,6 +13,22 @@ library(tidyverse) # basic packages
 library(lubridate) # using dates and times
 library(nycflights13) # flights data 
 
+# code taken from R Data Science 16.2.2 section
+make_datetime_100 <- function(year, month, day, time) {
+  make_datetime(year, month, day, time %/% 100, time %% 100)
+}
+
+flights_dt <- flights %>% 
+  filter(!is.na(dep_time), !is.na(arr_time)) %>% 
+  mutate(
+    dep_time = make_datetime_100(year, month, day, dep_time),
+    arr_time = make_datetime_100(year, month, day, arr_time),
+    sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),
+    sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)
+  ) %>% 
+  select(origin, dest, ends_with("delay"), ends_with("time"))
+
+
 ```
 
 A group of DFO coworkers decided to work together to complete the exercises in [R for Data Science](https://r4ds.had.co.nz/) by Garrett Grolemund and Hadley Wickham. 
@@ -63,21 +79,6 @@ mdy(d5)
 1. How does the distribution of flight times within a day change over the course of the year?
 
 ```{r}
-
-# code taken from R Data Science 16.2.2 section
-make_datetime_100 <- function(year, month, day, time) {
-  make_datetime(year, month, day, time %/% 100, time %% 100)
-}
-
-flights_dt <- flights %>% 
-  filter(!is.na(dep_time), !is.na(arr_time)) %>% 
-  mutate(
-    dep_time = make_datetime_100(year, month, day, dep_time),
-    arr_time = make_datetime_100(year, month, day, arr_time),
-    sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),
-    sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)
-  ) %>% 
-  select(origin, dest, ends_with("delay"), ends_with("time"))
 
 # create column with month as factor
 # make all days of month same
@@ -153,7 +154,7 @@ flights_dt %>%
 
 
 
-5. On what day of the week should you leave if you want to minimise the chance of a delay?
+5. On what day of the week should you leave if you want to minimize the chance of a delay?
 
 Saturday
 
@@ -225,7 +226,7 @@ Duration of a month is variable.
 
 2. Explain days(overnight * 1) to someone who has just started learning R. How does it work?
 
-Overnight is a binary variable, so if the arrival time is before the depareture time, it equals one. If it does not, it equals zero. Arrival time then is adjusted by one day, only if the flight is overnight. Otherwise the zero variable drops out of the adjustment.
+Overnight is a binary variable, so if the arrival time is before the departure time, it equals one. If it does not, it equals zero. Arrival time then is adjusted by one day, only if the flight is overnight. Otherwise the zero variable drops out of the adjustment.
 
 ```{r}
 
@@ -246,19 +247,59 @@ head(flights_dt)
 
 ```{r}
 
+# create vector of first day of every month in 2015
+# notice it is zero to eleven, 1:12 gives wrong answer
+ymd("2015--1-01") + month(0:11)
+
+# create vector of first day of the month for this year
+floor_date(today(), unit = "year") + month(0:11)
+  
+
 ```
 
 
 4. Write a function that given your birthday (as a date), returns how old you are in years.
 
 ```{r}
+# this uses integer division 
+age <- function(bday) {
+  
+  # the interval of your birthdate to today, divided by the number of years within that interval
+  (bday %--% today()) %/% years(1)
+}
 
+age("2001-11-05")
 ```
 
 
 5. Why can’t (today() %--% (today() + years(1)) / months(1) work?
 
+Gives 12 months between now and one year from now.Not sure why this is a problem as it gives the right answer. According to Google, this is mixing an interval of dates, with a human period of months. The correct answer uses interval division but it gives the same answer.
+
 ```{r}
 
+# this gives today plus one year
+today() + years(1)
+
+# this gives interval from today to next year
+# removed an extra bracket to work
+today() %--% (today() + years(1))
+
+# gives interval of one month
+months(1)
+
+# gives the number of months between now and one year from now
+(today() %--% (today() + years(1))) / months(1)
+
+# more correct way with integer division
+(today() %--% (today() + years(1))) %/% months(1)
+```
+
+# Time Zones
+
+Remember to get a list of time zones use
+
+```{r}
+head(OlsonNames())
 ```
 
