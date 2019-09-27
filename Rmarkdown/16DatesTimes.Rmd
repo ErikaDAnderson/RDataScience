@@ -47,7 +47,9 @@ ymd(c("2010-10-10", "bananas"))
 
 2. What does the tzone argument to today() do? Why is it important?
 
-tzone assigns a time zone to the today function. This 
+tzone assigns a time zone to the today function.
+This is important is you are sharing accross time zones.
+
 ```{r}
 today() # default to time zone on computer
 today(tzone = "UTC") # the date in UTC is not always the same as ours
@@ -128,6 +130,8 @@ Actual departure and arrival times (format HHMM or HMM), local tz
 
 This means the air time plus departure time will not be in the same time zone as the arrival time.
 
+Or some not round numbers due to time on the air strip but not flying. - JN
+
 ```{r}
 flights_dt %>%
   mutate(arrival_calc = dep_time + air_time,
@@ -141,6 +145,8 @@ flights_dt %>%
 4. How does the average delay time change over the course of a day? Should you use dep_time or sched_dep_time? Why?
 
 The average delay goes up until 8pm then it goes down again. Likely more flights during the day that causes delays.
+
+Use scheduled because the dep_time takes the delay into account - JN
 
 ```{r}
 flights_dt %>%
@@ -222,7 +228,7 @@ flights_dt %>%
 
 1. Why is there months() but no dmonths()?
 
-Duration of a month is variable.
+Duration of a month is variable and leap years change things.
 
 2. Explain days(overnight * 1) to someone who has just started learning R. How does it work?
 
@@ -238,6 +244,15 @@ flights_dt <- flights_dt %>%
     sched_arr_time = sched_arr_time + days(overnight * 1)
   )
 
+# this works too but it is slower JN
+# Why?
+flights_dt_test <- flights_dt %>% 
+  mutate(
+    overnight = arr_time < dep_time,
+    arr_time = arr_time + days(overnight),
+    sched_arr_time = sched_arr_time + days(overnight * 1)
+  )
+
 head(flights_dt)
 
 ```
@@ -249,7 +264,11 @@ head(flights_dt)
 
 # create vector of first day of every month in 2015
 # notice it is zero to eleven, 1:12 gives wrong answer
-ymd("2015--1-01") + month(0:11)
+ymd("2015-1-01") + month(0:11)
+
+# another way that gives different number format
+# by day -MO
+#ymd("2015-01-01") : ymd("2015-12-31")
 
 # create vector of first day of the month for this year
 floor_date(today(), unit = "year") + month(0:11)
@@ -274,7 +293,7 @@ age("2001-11-05")
 
 5. Why can’t (today() %--% (today() + years(1)) / months(1) work?
 
-Gives 12 months between now and one year from now.Not sure why this is a problem as it gives the right answer. According to Google, this is mixing an interval of dates, with a human period of months. The correct answer uses interval division but it gives the same answer.
+Gives 12 months between now and one year from now.Not sure why this is a problem as it gives the right answer. According to Google, this is mixing an interval of dates, with a human period of months. The correct answer uses interval division, but it gives the same answer.
 
 ```{r}
 
