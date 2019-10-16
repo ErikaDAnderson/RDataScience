@@ -1,0 +1,119 @@
+---
+title: "19 Functions"
+author: "Erika Anderson"
+date: "October 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages
+library(magrittr) # pipes
+
+```
+
+19.2.1 Practice
+
+1. Why is TRUE not a parameter to rescale01()? What would happen if x contained a single missing value, and na.rm was FALSE?
+
+```{r}
+
+x <- NA
+
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = FALSE, finite = TRUE)
+  (x - rng[1]) / (rng[2] - rng[1])
+}
+rescale01(x)
+
+```
+
+2. In the second variant of rescale01(), infinite values are left unchanged. Rewrite rescale01() so that -Inf is mapped to 0, and Inf is mapped to 1.
+
+```{r}
+
+x <- c(1:10, Inf)
+
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  vec <- (x - rng[1]) / (rng[2] - rng[1])
+  if_else(vec == -Inf, 0, vec)
+  if_else(vec == Inf, 1, vec)
+}
+
+rescale01(x)
+
+```
+
+3. Practice turning the following code snippets into functions. Think about what each function does. What would you call it? How many arguments does it need? Can you rewrite it to be more expressive or less duplicative?
+
+
+```{r}
+
+mean(is.na(x))
+
+meanfn <- function(x) {
+  mean(is.na(x))
+}
+
+meanfn(x)
+
+x / sum(x, na.rm = TRUE)
+
+thisfn <- function(x) {
+  x / sum(x, na.rm = TRUE)
+}
+
+thisfn(x)
+
+sd(x, na.rm = TRUE) / mean(x, na.rm = TRUE)
+
+sdfn <- function(x) {
+  sd(x, na.rm = TRUE) / meanfn(x)
+}
+
+sdfn(x)
+
+```
+
+4. Follow [this link](http://nicercode.github.io/intro/writing-functions.html) to write your own functions to compute the variance and skew of a numeric vector.
+
+5. Write both_na(), a function that takes two vectors of the same length and returns the number of positions that have an NA in both vectors.
+
+```{r}
+x <- c(1,2,NA)
+y <- c(NA, 2,NA)
+
+both_na <- function(x, y) {
+  which(is.na(x) & is.na(y))
+}
+
+both_na(x,y)
+```
+
+6. What do the following functions do? Why are they useful even though they are so short?
+
+It makes the base R easier to understand what you are doing. It is also easily repeatable.
+
+```{r}
+
+is_directory <- function(x) file.info(x)$isdir
+is_readable <- function(x) file.access(x, 4) == 0
+
+```
+
+7. Read the complete lyrics to “Little Bunny Foo Foo”. There’s a lot of duplication in this song. Extend the initial piping example to recreate the complete song, and use functions to reduce the duplication.
+
+```{r}
+
+bunny <- "Little bunny foo foo"
+
+hop <- function(x) {
+  "make the bunny hop"
+}
+
+
+```
+
