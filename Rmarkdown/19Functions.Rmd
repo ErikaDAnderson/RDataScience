@@ -215,11 +215,11 @@ Using norm as a prefix gives the ability to search related functions using RStud
 
 x <- 3
 
-if (x == 3) {message("x is correct")} # only has response if correct
+if (identical(x, 3)) {message("x is three")} # only has response if correct
 
-ifelse(x == 2, 2, 3) # output has to match the input
+ifelse(identical(x, 2), 2, 3) # output has to match the input
 
-if (x == 2) {message("x is two")} else {message("x is not two")} # gives two possible answers
+if (identical(x, 2)) {message("x is two")} else {message("x is not two")} # gives two possible answers
 
 ```
 
@@ -259,12 +259,13 @@ Use the negative of modulo operator to check divisibility.[What is modular arith
 ```{r}
 
 fizzbuzz_fn <- function(x) {
+
   if (!(x %% 3) && !(x %% 5)) {
-    message("fizzbuzz")
+    "fizzbuzz"
   } else if (!(x %% 3)) {
-    message("fizz")
+    "fizz"
   } else if (!(x %% 5)) {
-    message("buzz")
+    "buzz"
   } else {
     x
   }
@@ -274,6 +275,24 @@ fizzbuzz_fn(6)
 fizzbuzz_fn(30)
 fizzbuzz_fn(5)
 fizzbuzz_fn(11)
+fizzbuzz_fn("Hi")
+
+
+# another way with case_when
+fizzbuzz_vec <- function(x) {
+  
+  # these two lines check that x is a valid input
+  stopifnot(length(x) == 1)
+  stopifnot(is.numeric(x))
+  
+  case_when(
+    !(x %% 3) & !(x %% 5) ~ "fizzbuzz",
+    !(x %% 3) ~ "fizz",
+    !(x %% 5) ~ "buzz",
+    TRUE ~ as.character(x)
+  )
+}
+fizzbuzz_vec(c(0, 1, 2, 3, 5, 9, 10, 12, 15))
 
 ```
 
@@ -282,6 +301,10 @@ fizzbuzz_fn(11)
 
 ```{r}
 
+# simple data
+temp <- 5
+
+# given this
 if (temp <= 0) {
   "freezing"
 } else if (temp <= 10) {
@@ -294,16 +317,57 @@ if (temp <= 0) {
   "hot"
 }
 
+# example data
+temp <- c(-5, 5, 15, 25, 35)
+
+# use cut function to simplify
+cut(temp, 
+    breaks = c(-Inf, 0, 10, 20, 30, Inf),
+    labels = c("freezing", "cold", "cool", "warm", "hot"))
+
 ```
 
 
 5. How would you change the call to cut() if I’d used < instead of <=? What is the other chief advantage of cut() for this problem? (Hint: what happens if you have many values in temp?)
 
+The option right = TRUE would make the cut function < instead of <=
+The main advantage is that cut works on vectors, whereas if works only on a single value.
+
+
 6. What happens if you use switch() with numeric values?
+
+You are supposed to use integer values with switch. If you use numeric values, the function ignores everything past the decimal. It does not round the numeric, just cuts it off.
+
+```{r}
+
+# test switch with integer values
+switch(1, 2, 3, 4, 5)
+switch(3, "Hi", "Bye", "Oh")
+
+# test switch with numeric values
+switch(3.5, 2, 3, 4, 5)
+switch(2.7, "Hi", "Bye", "Oh")
+```
+
 
 7. What does this switch() call do? What happens if x is “e”?
 
+Nothing happens with x is "e" or the integer is 5.The function returns NULL
+
 ```{r}
+
+# gives error with x <- 1
+# Error: empty alternative in numeric switch
+x <- 2
+
+switch(x, 
+  a = ,
+  b = "ab",
+  c = ,
+  d = "cd"
+)
+
+x <- "e"
 
 switch(x, 
   a = ,
@@ -313,4 +377,14 @@ switch(x,
 )
 
 ```
+
+19.5.5 Function Arguments Exercises
+
+1. What does commas(letters, collapse = "-") do? Why?
+
+2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule("Title", pad = "-+"). Why doesn’t this currently work? How could you fix it?
+
+3. What does the trim argument to mean() do? When might you use it?
+
+4. The default value for the method argument to cor() is c("pearson", "kendall", "spearman"). What does that mean? What value is used by default?
 
