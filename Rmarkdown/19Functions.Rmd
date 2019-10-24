@@ -117,3 +117,175 @@ hop <- function(x) {
 
 ```
 
+# 19.3.1 Functions are for Humans Exercises
+
+This function tests whether the given prefix is present in the given string and returns a binomial answer.
+
+```{r}
+
+f1 <- function(string, prefix) {
+  substr(string, 1, nchar(prefix)) == prefix
+}
+
+f1("test string", "test")
+
+# new name
+test_prefix <- function(string, prefix) {
+  substr(string, 1, nchar(prefix)) == prefix
+}
+```
+
+This function returns a null if the input is a single value, and it returns the input minus the last value if the input is greater than a single value.
+
+
+```{r}
+f2 <- function(x) {
+  if (length(x) <= 1) return(NULL)
+  x[-length(x)]
+}
+
+f2(1)
+f2(c(1:9))
+f2(c("Hello", "Goodbye"))
+
+return_all_except_last <- function(input) {
+  if (length(x) <= 1) return(NULL)
+  x[-length(x)]
+}
+
+```
+
+This function replicates the second input, the same number of values as the first input.
+
+```{r}
+f3 <- function(x, y) {
+  rep(y, length.out = length(x))
+}
+
+f3(1,5)
+f3(c(2,5), 8)
+f3("Hello", "Goodbye")
+
+replicate_source <- function(amount, source) {
+  rep(y, length.out = length(x))
+}
+
+```
+
+2. Take a function that you’ve written recently and spend 5 minutes brainstorming a better name for it and its arguments.
+
+I interchanged camel case and snake case in the function name and the data frames. It was hard tor remember what bridge_t_remove was either...transformed data frame with column removed.
+
+```{r}
+
+# make function to create discrete tables for display
+breakBridgeTable <- function(df, rowNum, MeasurementNames) {
+  
+  df <- bridge_t_remove %>%
+    select(rowNum) %>%  
+    mutate(Tow = MeasurementNames) %>%
+    select(Tow, everything())
+    
+}
+```
+
+
+3. Compare and contrast rnorm() and MASS::mvrnorm(). How could you make them more consistent?
+
+rnorm(n, mean = 0, sd = 1) gives a random normal distribution with given mean and standard deviation.
+
+mvrnorm(n = 1, mu, Sigma, tol = 1e-6, empirical = FALSE, EISPACK = FALSE) produces one or more samples from the specified multivariate normal distribution.
+
+In both there is a "n" parameter, for the number of observations or samples. The mean and mu are the mean(s). I don't see the point of the input called EISPACK since anything other than FALSE produces an error.
+
+Perhaps:
+
+norm_r(n, mean, sd)
+norm_mvr(samples, mean, Sigma, tol, empirical)
+
+4. Make a case for why norm_r(), norm_d() etc would be better than rnorm(), dnorm(). Make a case for the opposite.
+
+Using norm as a prefix gives the ability to search related functions using RStudios autocomplete. The current names are easier if you know you want random or density.
+
+# 19.4.4 COnditional Execution Exercises
+
+1. What’s the difference between if and ifelse()? Carefully read the help and construct three examples that illustrate the key differences.
+
+```{r}
+
+x <- 3
+
+if (x == 3) {message("x is correct")} # only has response if correct
+
+ifelse(x == 2, 2, 3) # output has to match the input
+
+if (x == 2) {message("x is two")} else {message("x is not two")} # gives two possible answers
+
+```
+
+
+2. Write a greeting function that says “good morning”, “good afternoon”, or “good evening”, depending on the time of day. (Hint: use a time argument that defaults to lubridate::now(). That will make it easier to test your function.)
+
+```{r}
+
+library(lubridate)
+
+greetingfn <- function(time = lubridate::now()) {
+  hour <- hour(time)
+  
+  if (hour < 12) {
+    "Good morning"
+  } else if (hour < 18) {
+    "Good afternoon"
+  } else if (hour >= 18) {
+    "Good evening"
+  } else
+    "Hello"
+}
+
+greetingfn()
+greetingfn(ymd_h("2019-10-23 10"))
+greetingfn(ymd_h("2019-10-23 14"))
+greetingfn(ymd_h("2019-10-23 18"))
+greetingfn(ymd_h("2019-10-23 20"))
+
+```
+
+
+3. Implement a fizzbuzz function. It takes a single number as input. If the number is divisible by three, it returns “fizz”. If it’s divisible by five it returns “buzz”. If it’s divisible by three and five, it returns “fizzbuzz”. Otherwise, it returns the number. Make sure you first write working code before you create the function.
+
+4. How could you use cut() to simplify this set of nested if-else statements?
+
+```{r}
+if (temp <= 0) {
+  "freezing"
+} else if (temp <= 10) {
+  "cold"
+} else if (temp <= 20) {
+  "cool"
+} else if (temp <= 30) {
+  "warm"
+} else {
+  "hot"
+}
+
+```
+
+
+5. How would you change the call to cut() if I’d used < instead of <=? What is the other chief advantage of cut() for this problem? (Hint: what happens if you have many values in temp?)
+
+6. What happens if you use switch() with numeric values?
+
+7. What does this switch() call do? What happens if x is “e”?
+
+```{r}
+
+switch(x, 
+  a = ,
+  b = "ab",
+  c = ,
+  d = "cd"
+)
+
+```
+
