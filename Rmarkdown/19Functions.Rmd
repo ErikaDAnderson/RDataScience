@@ -453,6 +453,23 @@ rule("Important output")
 
 rule("Valuable output", pad = "-+")
 
+# modify version from web solutions
+# these fill the space, but do not go over
+# but the longer pading has ...
+rule <- function(..., pad = "-") {
+  title <- paste0(...)
+  width <- getOption("width") - nchar(title) - 5
+  padding <- str_dup(
+    pad,
+    ceiling(width - (str_length(title) - 5))
+  ) %>%
+    str_trunc(width)
+  cat(title, " ", padding, "\n", sep = "")
+}
+rule("Important output")
+
+rule("Valuable output", pad = "-+")
+
 ```
 
 
