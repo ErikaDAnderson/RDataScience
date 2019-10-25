@@ -18,6 +18,8 @@ library(magrittr) # pipes
 
 1. Why is TRUE not a parameter to rescale01()? What would happen if x contained a single missing value, and na.rm was FALSE?
 
+Gives an explicit error when the input is NA
+
 ```{r}
 
 x <- NA
@@ -174,7 +176,7 @@ replicate_source <- function(amount, source) {
 
 2. Take a function that you’ve written recently and spend 5 minutes brainstorming a better name for it and its arguments.
 
-I interchanged camel case and snake case in the function name and the data frames. It was hard tor remember what bridge_t_remove was either...transformed data frame with column removed.
+Parameters names of df and rowNum seemed good. Is the data frame an implicit parameter? I interchanged camel case and snake case in the function name and the data frames. It was hard tor remember what bridge_t_remove was either...transformed data frame with column removed.
 
 ```{r}
 
@@ -205,11 +207,11 @@ norm_mvr(samples, mean, Sigma, tol, empirical)
 
 4. Make a case for why norm_r(), norm_d() etc would be better than rnorm(), dnorm(). Make a case for the opposite.
 
-Using norm as a prefix gives the ability to search related functions using RStudios autocomplete. The current names are easier if you know you want random or density.
+Using norm as a prefix gives the ability to search related functions using RStudios autocomplete. The current names are easier if you know you know random or density.
 
 # 19.4.4 COnditional Execution Exercises
 
-1. What’s the difference between if and ifelse()? Carefully read the help and construct three examples that illustrate the key differences.
+1. What’s the difference between if and ifelse() functions? Carefully read the help and construct three examples that illustrate the key differences.
 
 ```{r}
 
@@ -219,7 +221,7 @@ if (identical(x, 3)) {message("x is three")} # only has response if correct
 
 ifelse(identical(x, 2), 2, 3) # output has to match the input
 
-if (identical(x, 2)) {message("x is two")} else {message("x is not two")} # gives two possible answers
+if (identical(x, 2)) {message("x is two")} else {message("x is not two")} # gives more than one possible answer
 
 ```
 
@@ -275,10 +277,11 @@ fizzbuzz_fn(6)
 fizzbuzz_fn(30)
 fizzbuzz_fn(5)
 fizzbuzz_fn(11)
-fizzbuzz_fn("Hi")
+#fizzbuzz_fn("Hi")
 
 
 # another way with case_when
+# include lines to check format of input
 fizzbuzz_vec <- function(x) {
   
   # these two lines check that x is a valid input
@@ -292,7 +295,7 @@ fizzbuzz_vec <- function(x) {
     TRUE ~ as.character(x)
   )
 }
-fizzbuzz_vec(c(0, 1, 2, 3, 5, 9, 10, 12, 15))
+#fizzbuzz_vec(c(0, 1, 2, 3, 5, 9, 10, 12, 15))
 
 ```
 
@@ -321,6 +324,7 @@ if (temp <= 0) {
 temp <- c(-5, 5, 15, 25, 35)
 
 # use cut function to simplify
+# use -Inf and Inf to bracket negative and positive infinity
 cut(temp, 
     breaks = c(-Inf, 0, 10, 20, 30, Inf),
     labels = c("freezing", "cold", "cool", "warm", "hot"))
@@ -352,7 +356,7 @@ switch(2.7, "Hi", "Bye", "Oh")
 
 7. What does this switch() call do? What happens if x is “e”?
 
-Nothing happens with x is "e" or the integer is 5.The function returns NULL
+Nothing happens with x is "e" or the integer is 5 since the function returns NULL.
 
 ```{r}
 
@@ -382,9 +386,81 @@ switch(x,
 
 1. What does commas(letters, collapse = "-") do? Why?
 
+It gives an error based there are two collapse parameters given. Need to include the details as parameters in the function, not within the function.
+
+```{r}
+
+# given 
+commas <- function(...) stringr::str_c(..., collapse = ", ")
+commas(letters[1:10])
+
+#commas(letters, collapse = "-")
+# Error in stringr::str_c(..., collapse = ", ") : 
+#   formal argument "collapse" matched by multiple actual arguments
+
+```
+
+
 2. It’d be nice if you could supply multiple characters to the pad argument, e.g. rule("Title", pad = "-+"). Why doesn’t this currently work? How could you fix it?
+
+It doesn't work since the length is double what it needs to be. You can check the length of pad and divide the by number to get the correct length. 
+
+```{r}
+
+# given
+rule <- function(..., pad = "-") {
+  title <- paste0(...)
+  width <- getOption("width") - nchar(title) - 5
+  cat(title, " ", stringr::str_dup(pad, width), "\n", sep = "")
+}
+
+# this is too long, even though it is given
+## why?
+rule(letters[1:10], pad = "-+")
+
+# modify function to check pad length
+ruleModify <- function(..., pad = "-") {
+  
+  title <- paste0(...)
+  
+  if (nchar(pad) == 1) {
+    
+    width <- getOption("width") - nchar(title) - 5
+    
+  } else {
+    width <- (getOption("width") - nchar(title) - 5)/nchar(pad)
+    
+  }
+  
+  cat(title, " ", stringr::str_dup(pad, width), "\n", sep = "")
+}
+
+ruleModify(letters[1:10], pad = "-+")
+
+```
+
 
 3. What does the trim argument to mean() do? When might you use it?
 
+"the fraction (0 to 0.5) of observations to be trimmed from each end of x before the mean is computed. Values of trim outside that range are taken as the nearest endpoint."
+
+It removes values based on the trim amount given to reduce the impact of outliers. The default is zero or no removal.
+
+```{r}
+
+x <- c(5,5,5,10)
+
+mean(x, trim = 0)
+mean(x, trim = 0.25)
+mean(x, trim = 0.5)
+
+```
+
+
 4. The default value for the method argument to cor() is c("pearson", "kendall", "spearman"). What does that mean? What value is used by default?
+
+"a character string indicating which correlation coefficient (or covariance) is to be computed. One of "pearson" (default), "kendall", or "spearman": can be abbreviated."
+
+The method argument accepts one of three values. person is default
+
 
