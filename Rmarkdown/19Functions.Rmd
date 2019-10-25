@@ -414,7 +414,7 @@ rule <- function(..., pad = "-") {
   cat(title, " ", stringr::str_dup(pad, width), "\n", sep = "")
 }
 
-# this is too long, even though it is given
+# this is too long, even though it gives shorter widths by half
 ## why?
 rule(letters[1:10], pad = "-+")
 
@@ -425,17 +425,33 @@ ruleModify <- function(..., pad = "-") {
   
   if (nchar(pad) == 1) {
     
-    width <- getOption("width") - nchar(title) - 5
+    width2 <- getOption("width") - nchar(title) - 5
     
   } else {
-    width <- (getOption("width") - nchar(title) - 5)/nchar(pad)
+    width2 <- (getOption("width") - nchar(title) - 5)/nchar(pad)
     
   }
   
-  cat(title, " ", stringr::str_dup(pad, width), "\n", sep = "")
+  cat(title, " ", stringr::str_dup(pad, width2), "\n", sep = "")
 }
 
 ruleModify(letters[1:10], pad = "-+")
+
+# here is the version from web solutions
+# these look too short
+rule <- function(..., pad = "-") {
+  title <- paste0(...)
+  width <- getOption("width") - nchar(title) - 5
+  padding <- str_dup(
+    pad,
+    ceiling(width / str_length(title))
+  ) %>%
+    str_trunc(width)
+  cat(title, " ", padding, "\n", sep = "")
+}
+rule("Important output")
+
+rule("Valuable output", pad = "-+")
 
 ```
 
