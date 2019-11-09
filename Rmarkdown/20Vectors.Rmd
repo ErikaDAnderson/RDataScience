@@ -1,0 +1,351 @@
+---
+title: "20 Vectors"
+date: "November 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages
+library(magrittr) # pipes
+library(purrr) # use to test types of values
+
+```
+
+# 20.3.5 Atomic Vectors Exercises
+
+1. Describe the difference between is.finite(x) and !is.infinite(x).
+
+is.finite does not consider NA or NaN to be finite, whereas !is.infinite considers NA and NaN to be finite. 
+
+```{r}
+
+x <- c(0, NA, NaN, Inf, -Inf)
+
+is.finite(x)
+
+!is.infinite(x)
+
+```
+
+
+2. Read the source code for dplyr::near() (Hint: to see the source code, drop the ()). How does it work?
+
+It evaluates whether the number is close to the other within a tolerance. That tolerance depends on "the square root of the smallest floating point number the computer can represent".
+
+```{r}
+# the source code
+near
+
+```
+
+3. A logical vector can take 3 possible values. How many possible values can an integer vector take? How many possible values can a double take? Use google to do some research.
+
+
+```{r}
+# logical
+# TRUE FALSE NA
+
+# integer
+.Machine$integer.max
+
+# double
+.Machine$double.xmax
+```
+
+4. Brainstorm at least four functions that allow you to convert a double to an integer. How do they differ? Be precise.
+
+The differences are in how the double is rounded, whether up or down. Ceiling goes up.
+
+```{r}
+x <- 2.5
+
+as.integer(x)
+round(x)
+floor(x)
+ceiling(x)
+trunc(x) # Andrew & Hilari
+```
+
+
+5. What functions from the readr package allow you to turn a string into logical, integer, and double vector?
+
+USing the col_types function, you can convert other types of data.You can use parse_guess to guess the col types.
+
+```{r}
+
+df <- c("Strings", "TRUE", "1", "3.5", "Hello")
+df
+
+read_csv(df, col_types = list(col_logical()))
+
+read_csv(df, col_types = list(col_integer()))
+
+read_csv(df, col_types = list(col_double()))
+
+```
+
+# 20.4.6 Using Atomic Vectors Exercises
+
+1. What does mean(is.na(x)) tell you about a vector x? What about sum(!is.finite(x))?
+
+```{r}
+x <- c(1,2 ,NA, Inf, -Inf, NaN)
+
+# gives you the proportion of all TRUE and FALSE for whether a value is NA
+is.na(x)
+mean(is.na(x))
+
+# gives you the sum of how many values are not finite such as NA
+!is.finite(x)
+sum(!is.finite(x))
+
+```
+
+
+2. Carefully read the documentation of is.vector(). What does it actually test for? Why does is.atomic() not agree with the definition of atomic vectors above?
+
+is.vector returns TRUE if x is a vector of the specified mode having *no attributes* other than names. It returns FALSE otherwise. A list will return TRUE.
+
+is.atomic returns TRUE if x is of an atomic type (or NULL) and FALSE otherwise. The object may have other attributes, but a list will return FALSE.
+
+is.atomic gives a TRUE for NULL and is.vector gives a FALSE with NULL
+
+```{r}
+x <- list(a = 1, b = 2)
+
+is.vector(x) 
+
+is.atomic(x)
+
+```
+
+
+3. Compare and contrast setNames() with purrr::set_names().
+
+The biggest difference is that setNames allows a named vector shorter than the values, whereas the purrr::set_names function gives an error if the names do not match the values in length.
+
+And purrr allows ...
+
+
+setNames: This is a convenience function that sets the names on an object and returns the object. It is most useful at the end of a function definition where one is creating the object to be returned and would prefer not to store it under a name just so the names can be assigned.
+
+purrr::setNames: This is equivalent to stats::setNames(), with more features and stricter argument checking.
+
+```{r}
+
+# notice it names the values and puts an NA for the others
+setNames(1:4, c("a", "b"))
+
+# gives error since there are not enough names
+# does not recycle names
+#set_names(1:4, "a", "b")
+set_names(1:4, c("a", "b", "c", "d"))
+
+# another way that works only in purrr:set_names
+purrr::set_names(1:4, "a", "b", "c", "d")
+
+# may apply function to names
+set_names(1:4, toupper(c("a", "b", "c", "d")))
+
+# seems to work in both
+setNames(1:4, toupper(c("a", "b", "c", "d")))
+
+
+```
+
+
+4. Create functions that take a vector as input and returns:
+
+  The last value. Should you use [ or [[?
+  
+```{r}
+
+x <- c("apple", "banana", "peach")
+
+lastValue <- function(x) {
+  last <- length(x)
+  x[last]
+  
+}
+
+lastValue(x)
+
+```
+  
+
+  The elements at even numbered positions.
+  
+```{r}
+
+x <- c("apple", "banana", "peach")
+
+evenValues <- function(x) {
+  x[seq_along(x) %% 2 == 0]
+  
+}
+
+evenValues(x)
+
+```
+  
+
+  Every element except the last value.
+  
+```{r}
+
+x <- c("apple", "banana", "peach")
+
+notLast <- function(x) {
+  shorter <- length(x) - 1
+  x[1:shorter]
+}
+
+notLast(x)
+
+```
+  
+
+  Only even numbers (and no missing values).
+  
+```{r}
+
+x <- c(1,2,3, NA)
+
+evenValuesnoNA <- function(x) {
+  
+  y <- x[!is.na(x)]
+  
+  y[y %% 2 == 0]
+
+}
+
+evenValuesnoNA(x)
+
+```
+  
+
+5. Why is x[-which(x > 0)] not the same as x[x <= 0]?
+
+Gives the same answer in most cases, except with NaN. The first includes NaN and the second method gives an NA for NaN instead. Which is finding the indices for the numbers above zero and removing them, whereas the logical operator gives an NA when the input is NaN.
+
+```{r}
+
+x <- c(-2, -1, NA, 0, 1, 2, Inf, -Inf, NaN)
+
+which(x > 0)
+x[-which(x > 0)] 
+
+
+x <= 0
+x[x <= 0]
+
+
+```
+
+
+6. What happens when you subset with a positive integer that’s bigger than the length of the vector? What happens when you subset with a name that doesn’t exist?
+
+You get NAs when you subset with a value larger than the vector or with a name that doesn't exist.
+
+```{r}
+x <- c(a = 1, b = 2)
+
+x[3]
+
+x["e"]
+x['e']
+x[["e"]]
+
+# HB example showing it will find a portion when given a portion of a correct vector
+z <- c(a = 3, b = 5)
+z[3]
+z[1:5]
+z[c("a","b")]
+z[c("a","b", "c")]
+
+```
+
+
+# 20.5.4 Recursive vectors (lists) Exercises
+
+1. Draw the following lists as nested sets:
+
+
+list(a, b, list(c, d), list(e, f))
+list(list(list(list(list(list(a))))))
+
+
+2. What happens if you subset a tibble as if you’re subsetting a list? What are the key differences between a list and a tibble?
+
+You can subset a tibble to get a vector from a column using $. A tibble will always have one type of data within a column of the same length, whereas a list can hold multiple types of data of different lengths.
+
+# 20.7.4 Augmented Vector Exercises
+
+1. What does hms::hms(3600) return? How does it print? What primitive type is the augmented vector built on top of? What attributes does it use?
+
+Returns 3600
+Prints 01:00:00
+Built on "hms" and "difftime" using a double
+Attributes  are units and class (hms and difftime)
+
+
+```{r}
+
+x <- hms::hms(3600)
+
+# returns
+unclass(x)
+
+# prints
+x
+
+# type
+typeof(x)
+
+# built on
+class(x)
+
+# attributes
+attributes(x)
+
+
+```
+
+
+2. Try and make a tibble that has columns with different lengths. What happens?
+
+Error: Tibble columns must have consistent lengths, only values of length one are recycled: * Length 2: Column `Numbers` * Length 3: Column `c(Letters = "ab", "cd", "ab")`
+
+```{r}
+
+x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = 1:3 )
+x
+
+#x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = 1:2 )
+
+```
+
+
+3. Based on the definition above, is it ok to have a list as a column of a tibble?
+
+It looks like it works fine as long, as there are the same number of rows
+
+```{r}
+
+#x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = c(list(1:3), list(1:2)))
+
+x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = c(list(1:3), list(1:2), list(5:9)))
+x
+
+x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = list(1:3))
+
+x <- tibble(Letters = c("ab", "cd", "ab"), Numbers = "p")
+x
+
+class(x)
+
+```
+
