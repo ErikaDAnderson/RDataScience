@@ -1,0 +1,246 @@
+---
+title: "21 Iteration"
+date: "November 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages
+library(magrittr) # pipes
+library(purrr) # functional programming ie map
+
+```
+
+# 21.1.1 For Loop Exercises
+
+1. Write for loops to:
+
+-Compute the mean of every column in mtcars.
+```{r}
+
+# create empty vector
+output <- vector("double", ncol(mtcars))
+
+# make named vector
+names(output) <- names(mtcars)
+
+# loop
+for (i in seq_along(mtcars)) {
+  output[[i]] <- mean(mtcars[[i]], na.rm = TRUE)
+}
+
+output
+```
+
+
+-Determine the type of each column in nycflights13::flights.
+```{r}
+
+library(nycflights13) # get data
+
+# get names of columns
+flightColumns <- names(flights)
+
+# create empty list
+### notice that list is needed rather than a vector since the time_hour has two values from class ###
+output <- vector("list", length(flightColumns))
+
+# name vector
+names(output) <- flightColumns
+
+for (i in seq_along(flightColumns)) {
+output[[i]] <- class(flights[[i]])
+  
+}
+
+output
+```
+
+-Compute the number of unique values in each column of iris.
+
+```{r}
+
+# create an empty list
+output <- vector("list", ncol(iris))
+
+# name the output 
+names(output) <- names(iris)
+
+for (i in seq_along(names(iris))) {
+  output[[i]] <- length(unique(iris[[i]]))
+  
+}
+
+output
+
+```
+
+-Generate 10 random normals for each (-10, 0, 10, 100).Think about the output, sequence, and body before you start writing the loop.
+
+```{r}
+
+# given vector
+x <- c(-10, 0, 10, 100)
+
+# create empty output
+output <- vector("list", length(x))
+
+# sequence
+for (i in seq_along(x)) {
+  output[[i]] <- rnorm(10, i)
+}
+
+output
+
+```
+
+
+2. Eliminate the for loop in each of the following examples by taking advantage of an existing function that works with vectors:
+
+```{r}
+
+out <- ""
+for (x in letters) {
+  out <- stringr::str_c(out, x)
+}
+
+out
+
+# redo without loop
+out2 <- paste0(letters, collapse = "")
+out2
+
+```
+
+
+```{r}
+x <- sample(100)
+sd <- 0
+for (i in seq_along(x)) {
+  sd <- sd + (x[i] - mean(x)) ^ 2
+}
+sd <- sqrt(sd / (length(x) - 1))
+sd
+
+# redo without loop using standard deviation function
+sd(x)
+
+```
+
+
+```{r}
+x <- runif(100)
+out <- vector("numeric", length(x))
+out[1] <- x[1]
+for (i in 2:length(x)) {
+  out[i] <- out[i - 1] + x[i]
+}
+out
+
+# without loop find cumulative sum
+cumsum(x)
+```
+
+3. Combine your function writing and for loop skills:
+
+-Write a for loop that prints() the lyrics to the children’s song “Alice the camel”.
+```{r}
+
+x <- c("three", "two", "one")
+
+for (i in seq_along(x)) {
+  line <- str_c("Alice the camel has ", x[i], " humps.", rep(i,3))
+  verse <- str_c(line, " So Go Alice Go")
+  print(verse)
+}
+
+```
+
+
+-Convert the nursery rhyme “ten in the bed” to a function. Generalise it to any number of people in any sleeping structure.
+```{r}
+
+output <- vector("character", 3)
+
+x <- c("three", "two", "one")
+y <- head(x, -1)
+
+for (i in seq_along(y)) {
+  
+  output[[i]] <- paste("There were", x[i], "in the bed and the little one said, Roll Over, roll over. So they all rolled over and one fell out. \n")
+}
+  
+# create last verse
+ finale <- ("There was one in the bed and the little one said, I'm lonely...\n")
+
+# print song
+cat(output, finale)
+
+
+
+```
+
+
+-Convert the song “99 bottles of beer on the wall” to a function. Generalise to any number of any vessel containing any liquid on any surface.
+```{r}
+
+i <- "99 bottles"
+liquid <- "beer"
+surface <- "wall"
+
+verse <- cat(str_c(i, " of ", liquid, " on the ", surface, ", ", i, " of ", liquid, ". Take one down and pass it around. ", i, " of ", liquid, "."))
+
+```
+
+
+4. It’s common to see for loops that don’t preallocate the output and instead increase the length of a vector at each step:
+
+
+```{r}
+
+output <- vector("integer", 0)
+for (i in seq_along(x)) {
+  output <- c(output, lengths(x[[i]]))
+}
+output
+
+```
+How does this affect performance? Design and execute an experiment.
+
+21.3.5 For loop variations Exercises
+
+1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
+
+2. What happens if you use for (nm in names(x)) and x has no names? What if only some of the elements are named? What if the names are not unique?
+
+3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
+
+```{r}
+show_mean(iris)
+```
+
+(Extra challenge: what function did I use to make sure that the numbers lined up nicely, even though the variable names had different lengths?)
+
+4. What does this code do? How does it work?
+
+```{r}
+trans <- list( 
+  disp = function(x) x * 0.0163871,
+  am = function(x) {
+    factor(x, labels = c("auto", "manual"))
+  }
+)
+for (var in names(trans)) {
+  mtcars[[var]] <- trans[[var]](mtcars[[var]])
+}
+```
+
+21.4.1 For loop vs. functional Exercises
+
+1. Read the documentation for apply(). In the 2d case, what two for loops does it generalise?
+
+2. Adapt col_summary() so that it only applies to numeric columns You might want to start with an is_numeric() function that returns a logical vector that has a TRUE corresponding to each numeric column.
+
