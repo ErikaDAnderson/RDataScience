@@ -187,11 +187,47 @@ cat(output, finale)
 -Convert the song “99 bottles of beer on the wall” to a function. Generalise to any number of any vessel containing any liquid on any surface.
 ```{r}
 
-i <- "99 bottles"
-liquid <- "beer"
-surface <- "wall"
+# create function
+beerSong <- function(numBottles, liquid, surface) {
+  
+  # should have tests for input variable here with stopifnot with wrong type
+  
+  # make a descending vector of number of bottles
+  x <- numBottles:0
+  
+  # create empty vector for output
+  output <- vector("character", i + 1)
+  
+  # sequence along numbers
+  for (i in seq_along(numBottles)) {
+    
+    # create number of bottles in text form
+    j <- x[[i]]
+    
+    if (j == 0) {
+      numBottles <- "No more bottles"
+    } else if (j == 1) {
+      numBottles <- "1 bottle"
+    } else {
+      numBottles <- str_c(j, " bottles")
+    }
+    
+    verse <- str_c(numBottles, " of ", liquid, " on the ", surface, ", ", numBottles, " of ", liquid, ". Take one down and pass it around. ", numBottles, " of ", liquid, ".")
+    
+    output[[i]] <- verse
+  }
+  
+  # add last line to verses
+  output[[i + 1]] <- str_c("Let's go buy more ", liquid, "!")
+  
+  cat(output)
+}
 
-verse <- cat(str_c(i, " of ", liquid, " on the ", surface, ", ", i, " of ", liquid, ". Take one down and pass it around. ", i, " of ", liquid, "."))
+# test function
+beerSong(3, "beer", "wall")
+
+# test with other parameters
+beerSong(2, "milk", "table")
 
 ```
 
@@ -210,15 +246,134 @@ output
 ```
 How does this affect performance? Design and execute an experiment.
 
+It doubles the time in simple functions if you incrementally add to a vector. The morale is use a premade empty vector for output.
+
+```{r}
+
+library(microbenchmark) # used to compare speeds of functions
+
+# given loop that adds to vector
+# make function
+
+addFunction <- function(x) {
+  output <- vector("integer", 0)
+  for (i in seq_along(x)) {
+    output <- c(output, lengths(x[[i]]))
+  }
+}
+
+# modified function that uses premade empty vector
+premadeVectorFn <- function(x) {
+  output2 <- vector("integer", length(x))
+  for (i in seq_along(x)) {
+    output2[[i]] <- 1
+  }
+}
+
+# compare speed of functions
+microbenchmark(addFunction(1000), premadeVectorFn(1000), times = 10)
+
+```
+
+
 21.3.5 For loop variations Exercises
 
-1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, files <- dir("data/", pattern = "\\.csv$", full.names = TRUE), and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
+1. Imagine you have a directory full of CSV files that you want to read in. You have their paths in a vector, , and now want to read each one with read_csv(). Write the for loop that will load them into a single data frame.
+
+```{r}
+
+# list of files
+files <- dir("data/", pattern = "\\.csv$", full.names = TRUE)
+
+# create list
+output <- vector("list", length(files))
+
+for (i in seq_along(files)) { 
+  x <- read_csv(files[[i]],
+                col_names = TRUE,
+                cols(
+                  A = col_double(),
+                  B = col_double(),
+                  C = col_double()
+                ))
+  output[[i]] <- x
+}
+
+# flatten into one dataframe
+bind_rows(output)
+
+```
+
 
 2. What happens if you use for (nm in names(x)) and x has no names? What if only some of the elements are named? What if the names are not unique?
 
-3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
+-Nothing happens, and no error is given, if you loop using names on an unamed vector
+-Using loop with some elements with names gives an error: Error in x[[nm]] : subscript out of bounds
+-Works (but selects only the first named duplicate element without error), but if you use the name to pull the value out there is an error: Error in nm[[x]] : attempt to select more than one element in vectorIndex
 
 ```{r}
+# create unnamed vector
+x <- 1:3
+
+for (nm in names(x)) {
+  cat(nm)
+}
+
+# create vector with some elements named
+x <- c("Hi" = 1, "Bye" = 2, 3)
+
+
+# for (nm in names(x)) {
+#   cat(nm)
+#   cat(x[[nm]])
+# }
+
+
+# create named vector with duplicate name
+x <- 1:3
+names(x) <- c("Hi", "Bye", "Hi")
+
+# for (nm in names(x)) {
+#   cat(nm[[x]])
+# }
+
+```
+
+
+3. Write a function that prints the mean of each numeric column in a data frame, along with its name. For example, show_mean(iris) would print:
+Sepal.Length: 5.84  
+Sepal.Width:  3.06  
+Petal.Length: 3.76  
+Petal.Width:  1.20  
+
+```{r}
+
+# create function
+show_mean <- function(df) {
+  
+# vector to sequence along
+vector <- 1:ncol(df)
+names(vector) <- colnames(df)
+
+# loop through each column
+for (i in vector) {
+  
+  column <- df[ ,i]
+  
+  if (is.numeric(column) == TRUE) {
+    
+    cat(
+      str_c(
+        names(vector)[vector == i]),
+        ":  ",
+        round(mean(column),2),
+        "\n")
+  } 
+}
+
+}
+
+# test function
 show_mean(iris)
 ```
 
@@ -227,13 +382,24 @@ show_mean(iris)
 4. What does this code do? How does it work?
 
 ```{r}
+
+# this creates a named list of two functions
 trans <- list( 
+  
+  # this function called disp is multiplied by a constant
+  # cubic inch to cubic meter
   disp = function(x) x * 0.0163871,
+  
+  # this function creates a function that creates a factor with two levels called auto and manual
   am = function(x) {
     factor(x, labels = c("auto", "manual"))
   }
 )
+
+# this sequences along the variables named in the list using the same functions within the trans list
 for (var in names(trans)) {
+  
+  # this overwrites the mtcars data frame using the functions in the list
   mtcars[[var]] <- trans[[var]](mtcars[[var]])
 }
 ```
@@ -242,5 +408,74 @@ for (var in names(trans)) {
 
 1. Read the documentation for apply(). In the 2d case, what two for loops does it generalise?
 
+apply either loops over columns or rows determined by the second MARGIN argument of 1 for rows or 2 for columns. You can use c(1,2) if you want to loop over both. jrnold says these represent seq_len(nrow(x)) and seq_len(ncol(x)) but I am not sure this works with the 2d case. Any ideas? 
+
 2. Adapt col_summary() so that it only applies to numeric columns You might want to start with an is_numeric() function that returns a logical vector that has a TRUE corresponding to each numeric column.
+
+```{r}
+
+# original data frame
+df <- tibble(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+
+# original function given
+col_summary <- function(df, fun) {
+  out <- vector("double", length(df))
+  for (i in seq_along(df)) {
+    out[i] <- fun(df[[i]])
+  }
+  out
+}
+
+# test function with median
+col_summary(df, median)
+
+# test function with mean
+col_summary(df, mean)
+
+# create data frame with numeric and non-numeric columns
+df2 <- tibble(
+  A = 1:3,
+  B = c("Hi", "Bye", "Yes"),
+  C = 4:6
+)
+
+# create new function that only works on numeric columns
+col_summary2 <- function(df2, fn) {
+  
+# create empty vector to hold results of numeric test
+numericOut <- vector("logical", ncol(df2))
+
+# name the vector with column names
+names(numericOut) <- names(df2)
+
+
+for (i in seq_along(df2)) {
+  numericOut[[i]] <- is.numeric(df2[[i]])
+}
+
+# find which columns are numeric
+indNumeric <- which(numericOut == TRUE)
+names(indNumeric) <- names(which(numericOut == TRUE))
+
+# create empty vector for results of function applied to only numeric columns
+out <- vector("double", length(indNumeric))
+names(out) <- names(indNumeric)
+
+  for (i in seq_along(indNumeric)) {
+    x <- indNumeric[i]
+    out[i] <- fn(df2[[x]])
+  }
+  out
+}
+
+# test new function
+col_summary2(df2, mean)
+
+```
+
 
