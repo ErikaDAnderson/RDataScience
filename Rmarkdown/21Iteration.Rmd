@@ -113,6 +113,10 @@ out
 out2 <- paste0(letters, collapse = "")
 out2
 
+# redo without loop
+out3 <- str_c(letters, collapse = "")
+out3
+
 ```
 
 
@@ -152,9 +156,9 @@ cumsum(x)
 x <- c("three", "two", "one")
 
 for (i in seq_along(x)) {
-  line <- str_c("Alice the camel has ", x[i], " humps.", rep(i,3))
-  verse <- str_c(line, " So Go Alice Go")
-  print(verse)
+  line <- str_c("Alice the camel has ", rep(x[i],3), " humps.\n", "\n", collapse = "\n")
+  verse <- str_c(line, " So Go Alice Go\n")
+  cat(verse)
 }
 
 ```
@@ -174,7 +178,7 @@ for (i in seq_along(y)) {
 }
   
 # create last verse
- finale <- ("There was one in the bed and the little one said, I'm lonely...\n")
+ finale <- "There was one in the bed and the little one said, I'm lonely...\n"
 
 # print song
 cat(output, finale)
@@ -196,7 +200,7 @@ beerSong <- function(numBottles, liquid, surface) {
   x <- numBottles:0
   
   # create empty vector for output
-  output <- vector("character", i + 1)
+  output <- vector("character", numBottles + 1)
   
   # sequence along numbers
   for (i in seq_along(numBottles)) {
@@ -212,6 +216,8 @@ beerSong <- function(numBottles, liquid, surface) {
       numBottles <- str_c(j, " bottles")
     }
     
+    
+    # need to modify to have one less bottle in last part of sentence
     verse <- str_c(numBottles, " of ", liquid, " on the ", surface, ", ", numBottles, " of ", liquid, ". Take one down and pass it around. ", numBottles, " of ", liquid, ".")
     
     output[[i]] <- verse
@@ -227,7 +233,7 @@ beerSong <- function(numBottles, liquid, surface) {
 beerSong(3, "beer", "wall")
 
 # test with other parameters
-beerSong(2, "milk", "table")
+#beerSong(2, "milk", "table")
 
 ```
 
@@ -309,7 +315,7 @@ bind_rows(output)
 
 -Nothing happens, and no error is given, if you loop using names on an unamed vector
 -Using loop with some elements with names gives an error: Error in x[[nm]] : subscript out of bounds
--Works (but selects only the first named duplicate element without error), but if you use the name to pull the value out there is an error: Error in nm[[x]] : attempt to select more than one element in vectorIndex
+-Works (but selects only the first named duplicate element without error), but if you use the name to pull the value out there is uses the first element only both times
 
 ```{r}
 # create unnamed vector
@@ -333,9 +339,9 @@ x <- c("Hi" = 1, "Bye" = 2, 3)
 x <- 1:3
 names(x) <- c("Hi", "Bye", "Hi")
 
-# for (nm in names(x)) {
-#   cat(nm[[x]])
-# }
+for (nm in names(x)) {
+  cat(x[[nm]])
+}
 
 ```
 
