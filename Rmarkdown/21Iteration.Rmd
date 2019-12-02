@@ -563,7 +563,7 @@ map(1:5, runif)
 
 ```
 
-4. What does map(-2:2, rnorm, n = 5) do? Why? What does map_dbl(-2:2, rnorm, n = 5) do? Why?
+4. What does map(x, ~rnorm, n = 5) do? Why? What does map_dbl(x, ~rnorm, n = 5) do with x a vector from -2 to 2? Why?
 
 ```{r}
 
@@ -571,7 +571,7 @@ map(1:5, runif)
 map(-2:2, rnorm, n = 5)
 
 # this gives an error because the result is a list, and not the expected double vector
-#map_dbl(-2:2, rnorm, n = 5) 
+# map_dbl(-2:2, rnorm, n = 5) 
 
 ```
 
