@@ -484,4 +484,114 @@ col_summary2(df2, mean)
 
 ```
 
+21.5.3 Map Function Exercises
+
+1. Write code that uses one of the map functions to:
+
+-Compute the mean of every column in mtcars.
+
+```{r}
+
+library(tidyverse)
+
+map_dbl(mtcars, mean)
+
+mtcars %>%
+  map_dbl(mean)
+
+```
+
+-Determine the type of each column in nycflights13::flights.
+
+```{r}
+
+nycflights13::flights %>%
+map_chr(typeof)
+
+```
+
+-Compute the number of unique values in each column of iris.
+
+```{r}
+
+# descriptive way
+map_int(iris, function(x) length(unique(x)))
+
+# using shorter function methods
+map_int(iris, ~length(unique(.)))
+
+# using pipes
+iris %>%
+  map_int(~length(unique(.)))
+
+```
+
+-Generate 10 random normals for each of  −10, 0, 10, and 100.
+
+```{r}
+
+# create data set
+x <- c(-10, 0, 10, 100)
+
+# standard way
+map(x, ~rnorm(10, mean = .))
+
+# with pipes
+x %>%
+  map(~rnorm(10, mean = .))
+
+```
+
+
+2. How can you create a single vector that for each column in a data frame indicates whether or not it’s a factor?
+
+```{r}
+
+str(iris)
+
+map_lgl(iris, is.factor)
+
+```
+
+
+3. What happens when you use the map functions on vectors that aren’t lists? What does map(1:5, runif) do? Why?
+
+If the input is a vector, map pretends each value is a portion of a list because map expects a list as input. 
+```{r}
+
+map(1:5, runif)
+
+```
+
+4. What does map(-2:2, rnorm, n = 5) do? Why? What does map_dbl(-2:2, rnorm, n = 5) do? Why?
+
+```{r}
+
+# this gives five random normals for -2 to 2
+map(-2:2, rnorm, n = 5)
+
+# this gives an error because the result is a list, and not the expected double vector
+#map_dbl(-2:2, rnorm, n = 5) 
+
+```
+
+5. Rewrite map(x, function(df) lm(mpg ~ wt, data = df)) to eliminate the anonymous function.
+
+```{r}
+
+# make data set to test
+x <- mtcars %>%
+  split(.$cyl)
+
+cat("Given function\n")
+map(x, function(df) lm(mpg ~ wt, data = df))
+
+cat("Shorter Version\n")
+map(x, ~lm(mpg ~ wt, data = .))
+
+cat("With pipes\n")
+x %>%
+  map(~lm(mpg ~ wt, data = .))
+
+```
 
