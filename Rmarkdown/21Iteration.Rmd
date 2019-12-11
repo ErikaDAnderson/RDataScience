@@ -508,6 +508,15 @@ mtcars %>%
 nycflights13::flights %>%
 map_chr(typeof)
 
+# another way
+nycflights13::flights %>%
+map_chr(type_sum)
+
+# another way
+nycflights13::flights %>%
+  map(class) %>%
+  flatten_chr(.)
+
 ```
 
 -Compute the number of unique values in each column of iris.
@@ -524,6 +533,11 @@ map_int(iris, ~length(unique(.)))
 iris %>%
   map_int(~length(unique(.)))
 
+# another way
+iris %>%
+  map(unique) %>%
+  map_int(length)
+
 ```
 
 -Generate 10 random normals for each of  −10, 0, 10, and 100.
@@ -535,6 +549,13 @@ x <- c(-10, 0, 10, 100)
 
 # standard way
 map(x, ~rnorm(10, mean = .))
+
+# another way
+map(x, rnorm, n = 10)
+
+# another way with pipers
+x %>%
+  map(., rnorm, n = 10)
 
 # with pipes
 x %>%
@@ -557,13 +578,16 @@ map_lgl(iris, is.factor)
 3. What happens when you use the map functions on vectors that aren’t lists? What does map(1:5, runif) do? Why?
 
 If the input is a vector, map pretends each value is a portion of a list because map expects a list as input. 
+
+The map function loops through each value sequentially.
+
 ```{r}
 
 map(1:5, runif)
 
 ```
 
-4. What does map(x, ~rnorm, n = 5) do? Why? What does map_dbl(x, ~rnorm, n = 5) do with x a vector from -2 to 2? Why?
+4. What does map(x, rnorm, n = 5) do? Why? What does map_dbl(x, rnorm, n = 5) do with x a vector from -2 to 2? Why?
 
 ```{r}
 
