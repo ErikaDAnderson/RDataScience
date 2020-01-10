@@ -629,7 +629,7 @@ No exercises
 
 1. Implement your own version of every() using a for loop. Compare it with purrr::every(). What does purrr’s version do that your version doesn’t?
 
-purrr is more elegant, but my for loop gives the results of each vector,not just all columns. Can you think of why every would be more useful than getting all results from list?
+purrr is more elegant and shorter, but my for loop gives the results of each vector,not just all columns. Can you think of why every would be more useful than getting all results from list?
 
 ```{r}
 
@@ -642,15 +642,23 @@ y <- list(0:10, 5.5)
 y %>% every(is.numeric)
 y %>% every(is.integer)
 
-# create output empty vectors
-output <- vector("logical", length(y))
-output2 <- vector("logical", length(y))
 
-# use for loop instead
-for (i in seq_along(y)) {output[[i]] <- is.numeric(y[[i]])} 
-output
-for (i in seq_along(y)) {output2[[i]] <- is.integer(y[[i]])} 
-output2
+# make function using loop with input and function
+myEvery <- function(y, fn) {
+  
+  # create output empty vectors
+output <- vector("logical", length(y))
+
+  for (i in seq_along(y)) {output[[i]] <- fn(y[[i]])} 
+
+# test to see if all values are true
+all(output)
+}
+
+# test with different functions to see if it works
+myEvery(y, is.numeric)
+myEvery(y, is.integer)
+
 
 ```
 
@@ -664,17 +672,19 @@ df <- tibble(
   "Other" = c("a", "b", "c")
 )
 
-# column summary for numeric columns only
-
-# create empty output vector
-output <- vector("double", ncol(df))  
-
-# for loop using 
-for (i in seq_along(df)) {
-
-  output[[i]] <- if_else(is.numeric(df[[i]]) == TRUE, mean(df[[i]]), NA_real_)
+myCol_summary <- function(df) {
+  df2 <- keep(df, is.numeric)
+  colMeans(df2)
 }
-output
+
+# test function
+myCol_summary(df)
+
+# test my function with no numeric columns after doing next question
+df_letter <- tibble(
+  "Other" = c("a", "b", "c")
+)
+myCol_summary(df_letter)
 
 ```
 
@@ -682,6 +692,7 @@ output
 3. A possible base R equivalent of col_summary() is:
 
 ```{r}
+
 col_sum3 <- function(df, f) {
   is_num <- sapply(df, is.numeric)
   df_num <- df[, is_num]
@@ -700,10 +711,15 @@ df <- tibble(
 )
 # OK
 col_sum3(df, mean)
-# Has problems: don't always return numeric vector
+
+
 col_sum3(df[1:2], mean)
 col_sum3(df[1], mean)
-col_sum3(df[0], mean)
+# Has problems: don't always return numeric vector
+#col_sum3(df[0], mean)
 ```
 
 What causes the bugs?
+
+If there are no numeric columns to sum then the function fails. It needs an option within the function if is.num is empty. Apparently this is because sapply returns a list rather than a empty vector, if there are no numeric columns, then you can't subset a vector like a list in the second half of the function. 
+
