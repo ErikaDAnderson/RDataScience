@@ -1,0 +1,66 @@
+---
+title: "23 Model Basics"
+date: "January 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages
+library(magrittr) # pipes
+library(modelr) # modelling
+
+# suggested option
+options(na.action = na.warn)
+
+```
+
+# 23.1.1 A Simple Model Exercises
+
+1. One downside of the linear model is that it is sensitive to unusual values because the distance incorporates a squared term. Fit a linear model to the simulated data below, and visualise the results. Rerun a few times to generate different simulated datasets. What do you notice about the model?
+
+```{r}
+
+sim1a <- tibble(
+  x = rep(1:10, each = 3),
+  y = x * 1.5 + 6 + rt(length(x), df = 2)
+)
+
+```
+
+2. One way to make linear models more robust is to use a different distance measure. For example, instead of root-mean-squared distance, you could use mean-absolute distance:
+
+```{r}
+
+measure_distance <- function(mod, data) {
+  diff <- data$y - model1(mod, data)
+  mean(abs(diff))
+}
+
+```
+
+Use optim() to fit this model to the simulated data above and compare it to the linear model.
+
+3. ne challenge with performing numerical optimisation is that it’s only guaranteed to find one local optimum. What’s the problem with optimising a three parameter model like this?
+
+```{r}
+
+model1 <- function(a, data) {
+  a[1] + data$x * a[2] + a[3]
+}
+
+```
+# 23.3.3 Visualising Models Exercises
+
+1. Instead of using lm() to fit a straight line, you can use loess() to fit a smooth curve. Repeat the process of model fitting, grid generation, predictions, and visualisation on sim1 using loess() instead of lm(). How does the result compare to geom_smooth()?
+
+2. add_predictions() is paired with gather_predictions() and spread_predictions(). How do these three functions differ?
+
+3. What does geom_ref_line() do? What package does it come from? Why is displaying a reference line in plots showing residuals useful and important?
+
+4.Why might you want to look at a frequency polygon of absolute residuals? What are the pros and cons compared to looking at the raw residuals?
+
+
+
