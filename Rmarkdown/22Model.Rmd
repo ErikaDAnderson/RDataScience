@@ -1,0 +1,100 @@
+---
+title: "22 Model"
+date: "February 2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load library
+library(tidyverse) # basic packages
+library(magrittr) # pipes
+library(purrr) # functional programming ie map
+library(modelr) # for models
+
+# options for modelr to warn if there are NAs in data
+# default is to silently drop them
+options(na.action = na.warn)
+
+```
+
+# 23.2.1 A Simple Model Exercises
+
+1. One downside of the linear model is that it is sensitive to unusual values because the distance incorporates a squared term. Fit a linear model to the simulated data below, and visualise the results. Rerun a few times to generate different simulated datasets. What do you notice about the model?
+
+The slopes pivots due to outliers.
+
+```{r}
+
+# # given to simulate data
+# sim1a <- tibble(
+#   x = rep(1:10, each = 3),
+#   y = x * 1.5 + 6 + rt(length(x), df = 2)
+# )
+# 
+# # use a second simulate to compare
+# sim1b <- tibble(
+#   x = rep(1:10, each = 3),
+#   y = x * 1.5 + 6 + rt(length(x), df = 2)
+# )
+# 
+# # graph these simulated datasets
+# ggplot() +
+#   geom_point(aes(x,y), data = sim1a, color = "red") +
+#   geom_smooth(aes(x,y), data = sim1a, color = "red", method = lm) +
+#   geom_point(aes(x,y), data = sim1b, color = "blue") +
+#   geom_smooth(aes(x,y), data = sim1b, color = "blue", method = lm) +
+#   theme_bw()
+# 
+# # apply lm function
+# sim1a_mod <- lm(y ~ x, data = sim1a)
+# sim1b_mod <- lm(y ~ x, data = sim1b)
+# 
+# # display
+# summary(sim1a_mod)
+# summary(sim1b_mod)
+
+# J Arnold used function with map to make multiple graphs from simulations to compare
+# why not...
+
+# make a function to make simulated data sets
+simData <- function(i) {
+    tibble(
+    x = rep(1:10, each = 3),
+    y = x * 1.5 + 6 + rt(length(x), df = 2),
+    id = i
+  )
+}
+
+# apply that function nine times
+sims <- map_df(1:9, simData)
+
+# graph results
+ggplot(sims, aes(x,y)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  facet_wrap(~id) +
+  theme_bw()
+  
+```
+
+2. One way to make linear models more robust is to use a different distance measure. For example, instead of root-mean-squared distance, you could use mean-absolute distance:
+
+```{r}
+
+# given
+measure_distance <- function(mod, data) {
+  diff <- data$y - model1(mod, data)
+  mean(abs(diff))
+}
+
+```
+
+Use optim() to fit this model to the simulated data above and compare it to the linear model.
+
+```{r}
+?optim
+
+```
+
