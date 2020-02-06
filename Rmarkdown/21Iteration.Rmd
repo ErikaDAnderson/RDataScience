@@ -631,6 +631,9 @@ No exercises
 
 purrr is more elegant and shorter, but my for loop gives the results of each vector,not just all columns. Can you think of why every would be more useful than getting all results from list?
 
+JArnold says 
+The function purrr::every() does fancy things with the predicate function argument .p, like taking a logical vector instead of a function, or being able to test part of a string if the elements of .x are lists.
+
 ```{r}
 
 library(tidyverse)
@@ -650,7 +653,6 @@ myEvery <- function(y, fn) {
 output <- vector("logical", length(y))
 
   for (i in seq_along(y)) {output[[i]] <- fn(y[[i]])} 
-
 # test to see if all values are true
 all(output)
 }
@@ -658,7 +660,6 @@ all(output)
 # test with different functions to see if it works
 myEvery(y, is.numeric)
 myEvery(y, is.integer)
-
 
 ```
 
@@ -686,6 +687,11 @@ df_letter <- tibble(
 )
 myCol_summary(df_letter)
 
+# Andrew's way
+iris %>% 
+  keep(is.numeric) %>%
+  map(summary)
+
 ```
 
 
@@ -698,6 +704,7 @@ col_sum3 <- function(df, f) {
   df_num <- df[, is_num]
 
   sapply(df_num, f)
+  
 }
 ```
 
