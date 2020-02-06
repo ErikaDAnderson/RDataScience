@@ -23,37 +23,37 @@ options(na.action = na.warn)
 
 1. One downside of the linear model is that it is sensitive to unusual values because the distance incorporates a squared term. Fit a linear model to the simulated data below, and visualise the results. Rerun a few times to generate different simulated datasets. What do you notice about the model?
 
-The slopes pivots due to outliers.
+The slope pivots, and the intercept moves, due to outliers.
 
 ```{r}
 
-# # given to simulate data
-# sim1a <- tibble(
-#   x = rep(1:10, each = 3),
-#   y = x * 1.5 + 6 + rt(length(x), df = 2)
-# )
-# 
-# # use a second simulate to compare
-# sim1b <- tibble(
-#   x = rep(1:10, each = 3),
-#   y = x * 1.5 + 6 + rt(length(x), df = 2)
-# )
-# 
-# # graph these simulated datasets
-# ggplot() +
-#   geom_point(aes(x,y), data = sim1a, color = "red") +
-#   geom_smooth(aes(x,y), data = sim1a, color = "red", method = lm) +
-#   geom_point(aes(x,y), data = sim1b, color = "blue") +
-#   geom_smooth(aes(x,y), data = sim1b, color = "blue", method = lm) +
-#   theme_bw()
-# 
-# # apply lm function
-# sim1a_mod <- lm(y ~ x, data = sim1a)
-# sim1b_mod <- lm(y ~ x, data = sim1b)
-# 
-# # display
-# summary(sim1a_mod)
-# summary(sim1b_mod)
+# given to simulate data
+sim1a <- tibble(
+  x = rep(1:10, each = 3),
+  y = x * 1.5 + 6 + rt(length(x), df = 2)
+)
+
+# use a second simulate to compare
+sim1b <- tibble(
+  x = rep(1:10, each = 3),
+  y = x * 1.5 + 6 + rt(length(x), df = 2)
+)
+
+# graph these simulated datasets
+ggplot() +
+  geom_point(aes(x,y), data = sim1a, color = "red") +
+  geom_smooth(aes(x,y), data = sim1a, color = "red", method = lm) +
+  geom_point(aes(x,y), data = sim1b, color = "blue") +
+  geom_smooth(aes(x,y), data = sim1b, color = "blue", method = lm) +
+  theme_bw()
+
+# apply lm function
+sim1a_mod <- lm(y ~ x, data = sim1a)
+sim1b_mod <- lm(y ~ x, data = sim1b)
+
+# display
+coef(sim1a_mod)
+coef(sim1b_mod)
 
 # J Arnold used function with map to make multiple graphs from simulations to compare
 # why not...
@@ -84,9 +84,18 @@ ggplot(sims, aes(x,y)) +
 ```{r}
 
 # given
-measure_distance <- function(mod, data) {
-  diff <- data$y - model1(mod, data)
+model_ea <- function(a, data) {
+  a[1] + data$x * a[2]
+}
+
+measure_distance2 <- function(mod, data) {
+  diff <- data$y - model_ea(mod, data)
   mean(abs(diff))
+}
+
+measure_distance <- function(mod, data) {
+  diff <- data$y - model_ea(mod, data)
+  sqrt(mean(diff ^ 2))
 }
 
 ```
@@ -94,7 +103,124 @@ measure_distance <- function(mod, data) {
 Use optim() to fit this model to the simulated data above and compare it to the linear model.
 
 ```{r}
+
+# read help file
 ?optim
 
+# with mean difference
+optimMean <- optim(c(4,2), measure_distance2, data = sim1)
+optimMean
+
+# compare to root mean squared deviation
+optimRMSD <- optim(c(4, 2), measure_distance, data = sim1)
+optimRMSD
+
+
+# graph them both
+ggplot(aes(x,y), data = sim1) +
+  geom_point() +
+  #geom_smooth(method = "lm", se = FALSE, color = "blue") +
+  geom_abline(slope = optimMean$par[2], intercept = optimMean$par[1], color = "red") +
+  geom_abline(slope = optimRMSD$par[2], intercept = optimRMSD$par[1], color = "blue") +
+  theme_bw()
+
 ```
+
+It looks like mean distance is similar to RMSD.
+
+3. One challenge with performing numerical optimisation is that it’s only guaranteed to find one local optimum. What’s the problem with optimising a three parameter model like this?
+
+```{r}
+
+model1 <- function(a, data) {
+  a[1] + data$x * a[2] + a[3]
+}
+
+```
+
+It would only optimize in 2 dimensions, not the three necessary. J Arnold says that the origin of the optim function would give different results.
+
+# 23.3.3 Visualizing Models Exercises
+
+1. Instead of using lm() to fit a straight line, you can use loess() to fit a smooth curve. Repeat the process of model fitting, grid generation, predictions, and visualisation on sim1 using loess() instead of lm(). How does the result compare to geom_smooth()?
+
+geom_smooth and loess model fit the data the same.
+
+```{r}
+
+# given
+sim1_mod <- lm(y ~ x, data = sim1)
+
+# model fitting with loess
+sim1_mod_loess <- loess(y ~ x, data = sim1)
+
+# generate grid & predictions
+grid_loess <- sim1 %>%
+  data_grid(x) %>%
+  add_predictions(., sim1_mod_loess)
+
+# graph
+ggplot() +
+  geom_point(aes(x,y), data = sim1) +
+  geom_smooth(aes(x, y), method = "loess",  data = sim1) +
+    geom_line(aes(x, pred), data = grid_loess, color = "red") +
+  theme_bw()
+  
+
+```
+
+
+2. add_predictions() is paired with gather_predictions() and spread_predictions(). How do these three functions differ?
+
+add_prediction adds a single new column, with default name pred, to the input data. 
+spread_predictions adds one column for each model. 
+gather_predictions adds two columns .model and .pred, and repeats the input rows for each model.
+
+```{r}
+
+# try out spread predictions
+sim1 %>%
+  data_grid(x) %>%
+  spread_predictions(sim1_mod, sim1_mod_loess)
+
+# try out gather predictions
+sim1 %>%
+  data_grid(x) %>%
+  gather_predictions(sim1_mod, sim1_mod_loess)
+
+```
+
+
+3. What does geom_ref_line() do? What package does it come from? Why is displaying a reference line in plots showing residuals useful and important?
+
+```{r}
+?geom_ref_line
+```
+
+From the ggplot package to add a reference line to the graph. It can be used to mark the zero mark for residuals to see if there are any patterns left in the data.
+
+4. Why might you want to look at a frequency polygon of absolute residuals? What are the pros and cons compared to looking at the raw residuals?
+
+J Arnold says that using the absolute value of the residual makes visualizing the spread easier by doubling the values. But this losses information about whether the model is systematically under or over estimating.
+
+```{r}
+
+# given
+sim1_mod <- lm(y ~ x, data = sim1)
+
+sim1 <- sim1 %>%
+  add_residuals(sim1_mod) %>%
+  
+  # add column for absolute residuals
+  mutate(absRes = abs(resid)) 
+
+# graph both and compare
+ggplot(sim1) +
+  geom_freqpoly(aes(resid), binwidth = 0.5, color = "red") +
+  geom_freqpoly(aes(absRes), binwidth = 0.5, color = "blue") +
+  geom_ref_line(v = 0)
+
+
+```
+
 
