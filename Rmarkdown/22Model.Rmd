@@ -108,11 +108,11 @@ Use optim() to fit this model to the simulated data above and compare it to the 
 ?optim
 
 # with mean difference
-optimMean <- optim(c(4,2), measure_distance2, data = sim1)
+optimMean <- optim(c(0,0), measure_distance2, data = sim1b)
 optimMean
 
 # compare to root mean squared deviation
-optimRMSD <- optim(c(4, 2), measure_distance, data = sim1)
+optimRMSD <- optim(c(0,0), measure_distance, data = sim1b)
 optimRMSD
 
 
@@ -120,13 +120,15 @@ optimRMSD
 ggplot(aes(x,y), data = sim1) +
   geom_point() +
   #geom_smooth(method = "lm", se = FALSE, color = "blue") +
-  geom_abline(slope = optimMean$par[2], intercept = optimMean$par[1], color = "red") +
-  geom_abline(slope = optimRMSD$par[2], intercept = optimRMSD$par[1], color = "blue") +
+  geom_abline(slope = optimMean$par[2], 
+              intercept = optimMean$par[1], color = "red") +
+  geom_abline(slope = optimRMSD$par[2], 
+              intercept = optimRMSD$par[1], color = "blue") +
   theme_bw()
 
 ```
 
-It looks like mean distance is similar to RMSD.
+It looks like mean distance is similar to RMSD. It is possible that mean abs is les sensitive to outliers.
 
 3. One challenge with performing numerical optimisation is that it’s only guaranteed to find one local optimum. What’s the problem with optimising a three parameter model like this?
 
@@ -162,8 +164,10 @@ grid_loess <- sim1 %>%
 # graph
 ggplot() +
   geom_point(aes(x,y), data = sim1) +
-  geom_smooth(aes(x, y), method = "loess",  data = sim1) +
-    geom_line(aes(x, pred), data = grid_loess, color = "red") +
+  geom_smooth(aes(x, y), method = "loess",  
+              data = sim1, se = FALSE) +
+  geom_line(aes(x, pred), data = grid_loess, 
+            color = "red", se = FALSE) +
   theme_bw()
   
 
@@ -197,7 +201,7 @@ sim1 %>%
 ?geom_ref_line
 ```
 
-From the ggplot package to add a reference line to the graph. It can be used to mark the zero mark for residuals to see if there are any patterns left in the data.
+From the modelr package to add a reference line to the ggplot graph. It can be used to mark the zero mark for residuals to see if there are any patterns left in the data.
 
 4. Why might you want to look at a frequency polygon of absolute residuals? What are the pros and cons compared to looking at the raw residuals?
 
@@ -223,4 +227,20 @@ ggplot(sim1) +
 
 ```
 
+
+23.4.5 Formulas and Model Families Exercises
+
+1. What happens if you repeat the analysis of sim2 using a model without an intercept. What happens to the model equation? What happens to the predictions?
+
+2. Use model_matrix() to explore the equations generated for the models I fit to sim3 and sim4. Why is * a good shorthand for interaction?
+
+3. Using the basic principles, convert the formulas in the following two models into functions. (Hint: start by converting the categorical variable into 0-1 variables.)
+
+```{r}
+mod1 <- lm(y ~ x1 + x2, data = sim3)
+mod2 <- lm(y ~ x1 * x2, data = sim3)
+
+```
+
+4. For sim4, which of mod1 and mod2 is better? I think mod2 does a slightly better job at removing patterns, but it’s pretty subtle. Can you come up with a plot to support my claim?
 
