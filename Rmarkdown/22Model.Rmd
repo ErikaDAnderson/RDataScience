@@ -12,6 +12,7 @@ library(tidyverse) # basic packages
 library(magrittr) # pipes
 library(purrr) # functional programming ie map
 library(modelr) # for models
+library(splines) # fit non linear models with natural spline
 
 # options for modelr to warn if there are NAs in data
 # default is to silently drop them
@@ -232,15 +233,148 @@ ggplot(sim1) +
 
 1. What happens if you repeat the analysis of sim2 using a model without an intercept. What happens to the model equation? What happens to the predictions?
 
+The predictions are the same with and without an intercept. So why is it included by default?
+
+```{r}
+# given
+mod2 <- lm(y ~ x, data = sim2)
+
+grid <- sim2 %>% 
+  data_grid(x) %>% 
+  add_predictions(mod2)
+grid
+
+ggplot(sim2, aes(x)) + 
+  geom_point(aes(y = y)) +
+  geom_point(data = grid, aes(y = pred), colour = "red", size = 4)
+
+#repeat without intercept
+mod2b <- lm(y ~ x -1, data = sim2)
+
+# look at what the model is using
+model_matrix(sim2, mod2b)
+
+# redo without intercept
+gridb <- sim2 %>% 
+  data_grid(x) %>% 
+  add_predictions(mod2b)
+gridb
+
+ggplot(sim2, aes(x)) + 
+  geom_point(aes(y = y)) +
+  geom_point(data = grid, aes(y = pred), colour = "red", size = 4) +
+  geom_point(data = gridb, aes(y = pred), colour = "blue", size = 4)
+
+# JArnold's way
+grid <- sim2 %>%
+  data_grid(x) %>%
+  spread_predictions(mod2, mod2b)
+grid
+
+```
+
+
 2. Use model_matrix() to explore the equations generated for the models I fit to sim3 and sim4. Why is * a good shorthand for interaction?
+
+The star represents multiple and the model with interactions adds terms that are the product of the combined terms.
+
+```{r}
+
+# given
+mod1 <- lm(y ~ x1 + x2, data = sim3)
+mod2 <- lm(y ~ x1 * x2, data = sim3)
+mod3 <- lm(y ~ x1 + x2, data = sim4)
+mod4 <- lm(y ~ x1 * x2, data = sim4)
+
+model_matrix(sim3, mod1)
+model_matrix(sim3, mod2)
+model_matrix(sim4, mod3)
+model_matrix(sim4, mod4)
+
+```
+
 
 3. Using the basic principles, convert the formulas in the following two models into functions. (Hint: start by converting the categorical variable into 0-1 variables.)
 
 ```{r}
+
+# given
 mod1 <- lm(y ~ x1 + x2, data = sim3)
 mod2 <- lm(y ~ x1 * x2, data = sim3)
+
+# let us see what they make
+model_matrix(sim3, mod1)
+model_matrix(sim3, mod2)
+
+# create a function for the first type
+createMod1Fn <- function(df) {
+
+df %>%
+  mutate(`(Intercept)` = 1,
+         x1 = x1,
+         # don't use x2 = a since one level is for reference
+         x2b = as.numeric(x2 == "b"),
+         x2c = as.numeric(x2 == "c"),
+         x2d = as.numeric(x2 == "d")) %>%
+  select(`(Intercept)`, x1, x2b, x2c, x2d)
+}
+
+# test it
+mod1_fromFn <- createMod1Fn(sim3)
+mod1_fromFn
+
+# create a function for the second type
+createMod2Fn <- function(df) {
+
+df %>%
+  mutate(`(Intercept)` = 1,
+         x1 = x1,
+         # don't use x2 = a since one level is for reference
+         x2b = as.numeric(x2 == "b"),
+         x2c = as.numeric(x2 == "c"),
+         x2d = as.numeric(x2 == "d"),
+         `x1:x2b` = x1*x2b,
+         `x1:x2c` = x1*x2c,
+         `x1:x2d` = x1*x2d) %>%
+  select(`(Intercept)`, x1, x2b, x2c, x2d, `x1:x2b`, `x1:x2c`, `x1:x2d`)
+}
+  
+# test it
+mod2_fromFn <- createMod2Fn(sim3)
+mod2_fromFn
 
 ```
 
 4. For sim4, which of mod1 and mod2 is better? I think mod2 does a slightly better job at removing patterns, but it’s pretty subtle. Can you come up with a plot to support my claim?
+
+It looks like residuals are fairly close, but model 1 has slightly lower total absolute residuals. Model 2 has a mean residual slightly closer to zero, with a lower standard deviation. The model are not particularly different though. The AIC is slighlty smaller for model 2.
+
+```{r}
+
+#given
+mod1 <- lm(y ~ x1 + x2, data = sim4)
+mod2 <- lm(y ~ x1 * x2, data = sim4)
+
+# add residuals for each model to df grid
+gridRes <- sim4 %>% 
+  gather_residuals(mod1, mod2)
+
+# graph residuals
+ggplot(gridRes, aes(x = resid, group = model, color = model)) +
+  geom_freqpoly(binwidth = 0.25)
+
+# calculate total absolute residuals to see which model fits better
+# JArnold says to check sd of the resid from the models
+gridRes %>%
+  group_by(model) %>%
+  summarize(total = sum(abs(resid)),
+            meanResid = mean(resid),
+            sd = sd(resid))
+# this shows that model 1 is slightly better according to absolute value
+# the standard deviation is slightly better for model 2
+
+# calculate AIC since I have seen that before
+stats::AIC(mod1, mod2)
+
+```
 
