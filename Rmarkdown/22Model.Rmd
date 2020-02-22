@@ -229,7 +229,7 @@ ggplot(sim1) +
 ```
 
 
-23.4.5 Formulas and Model Families Exercises
+#23.4.5 Formulas and Model Families Exercises
 
 1. What happens if you repeat the analysis of sim2 using a model without an intercept. What happens to the model equation? What happens to the predictions?
 
@@ -276,7 +276,7 @@ grid
 
 2. Use model_matrix() to explore the equations generated for the models I fit to sim3 and sim4. Why is * a good shorthand for interaction?
 
-The star represents multiple and the model with interactions adds terms that are the product of the combined terms.
+The star represents to multiply and the model with interactions adds terms that are the product of the combined terms.
 
 ```{r}
 
@@ -361,7 +361,7 @@ gridRes <- sim4 %>%
 
 # graph residuals
 ggplot(gridRes, aes(x = resid, group = model, color = model)) +
-  geom_freqpoly(binwidth = 0.25)
+  geom_freqpoly(binwidth = 0.5)
 
 # calculate total absolute residuals to see which model fits better
 # JArnold says to check sd of the resid from the models
@@ -375,6 +375,7 @@ gridRes %>%
 
 # calculate AIC since I have seen that before
 stats::AIC(mod1, mod2)
+
 
 ```
 
