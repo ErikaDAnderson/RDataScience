@@ -30,9 +30,11 @@ These vertical strips represent the even numbers associated with the size of dia
 diamonds2 <- diamonds %>% 
   filter(carat <= 2.5) %>% 
   mutate(lprice = log2(price), 
-         lcarat = log2(carat))
+         lcarat = log2(carat),
+         caratTrans = 2^lcarat,
+         pricetrans = 2^lprice)
 
-ggplot(diamonds2, aes(lcarat, lprice)) + 
+ggplot(diamonds2, aes(caratTrans, lprice)) + 
   geom_hex(bins = 50)
 
 
@@ -41,7 +43,7 @@ ggplot(diamonds2, aes(lcarat, lprice)) +
 
 2. If log(price) = a_0 + a_1 * log(carat), what does that say about the relationship between price and carat?
 
-The log relationship means there is an exponential relationship between carat and price, rather than linear. So if the carat goes up by 2, then the price goes up by a power. See jarnold for more details.
+The log relationship means there is an exponential relationship between carat and price, rather than linear. So if the carat goes up by 2, then the price goes up by a power. See jarnold for more details. The power is the log linear slope which is a_1.
 
 ```{r}
 
@@ -63,7 +65,7 @@ ggplot(diamonds2, aes(carat, price)) +
 
 3. Extract the diamonds that have very high and very low residuals. Is there anything unusual about these diamonds? Are they particularly bad or good, or do you think these are pricing errors?
 
-More smaller carat, fair cut, and F color diamonds in the residuals. I suspect that it is overpricing diamonds.
+More smaller carat, fair cut, F color, SI1 clarity diamonds in the residuals. I suspect that it is overpricing diamonds.
 
 ```{r}
 
@@ -79,22 +81,21 @@ diamonds2 <- diamonds2 %>%
 
 # select outliers above and below 1, -1 residuals
 diamonds3 <- diamonds2 %>%
-  filter(lresid2 > 1 | lresid2 < -1)
+  filter(abs(lresid2) > 1)
 diamonds3
 
 # plot them
-ggplot(diamonds3, aes(carat, lresid2)) + 
-  geom_point()
+ggplot(diamonds3, aes(carat)) + 
+  geom_histogram(bin = 1)
 
-ggplot(diamonds3, aes(color, lresid2)) + 
-  geom_point()
+ggplot(diamonds3, aes(color)) + 
+  geom_bar()
 
-ggplot(diamonds3, aes(cut, lresid2)) + 
-  geom_point()
+ggplot(diamonds3, aes(cut)) + 
+  geom_bar()
 
-
-ggplot(diamonds3, aes(clarity, lresid2)) + 
-  geom_point()
+ggplot(diamonds3, aes(clarity)) + 
+  geom_bar()
 
 ```
 
@@ -116,9 +117,6 @@ grid <- diamonds2 %>%
   add_predictions(mod_diamond2) %>%
   mutate(PriceTrans = 2^pred)
 
-# plot the cut by price to see the value
-ggplot(grid, aes(cut, PriceTrans)) + 
-  geom_point()
 
 # could do this for all the other factors
 
@@ -130,6 +128,18 @@ lresid2_summary <- summarise(diamonds2,
   p975 = quantile(lresid2, 0.975)
 )
 lresid2_summary
+
+# residuals for model one to compare
+diamonds4 <- diamonds2 %>%
+  add_residuals(., mod_diamond)
+
+lresid_summary <- summarise(diamonds4,
+  rmse = sqrt(mean(resid^2)),
+  mae = mean(abs(resid)),
+  p025 = quantile(resid, 0.025),
+  p975 = quantile(resid, 0.975)
+)
+lresid_summary
 
 ```
 
