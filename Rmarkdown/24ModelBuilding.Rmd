@@ -19,8 +19,117 @@ library(lubridate)
 
 # 24.2.3 Why are low quality diamonds more expensive? Exercises
 
+1. In the plot of lcarat vs. lprice, there are some bright vertical strips. What do they represent?
+
+These vertical strips represent the even numbers associated with the size of diamond to market to people.
+
 
 ```{r}
+
+# given
+diamonds2 <- diamonds %>% 
+  filter(carat <= 2.5) %>% 
+  mutate(lprice = log2(price), 
+         lcarat = log2(carat))
+
+ggplot(diamonds2, aes(lcarat, lprice)) + 
+  geom_hex(bins = 50)
+
+
+```
+
+
+2. If log(price) = a_0 + a_1 * log(carat), what does that say about the relationship between price and carat?
+
+The log relationship means there is an exponential relationship between carat and price, rather than linear. So if the carat goes up by 2, then the price goes up by a power. See jarnold for more details.
+
+```{r}
+
+# given
+mod_diamond <- lm(lprice ~ lcarat, data = diamonds2)
+
+grid <- diamonds2 %>% 
+  data_grid(carat = seq_range(carat, 20)) %>% 
+  mutate(lcarat = log2(carat)) %>% 
+  add_predictions(mod_diamond, "lprice") %>% 
+  mutate(price = 2 ^ lprice)
+
+ggplot(diamonds2, aes(carat, price)) + 
+  geom_hex(bins = 50) + 
+  geom_line(data = grid, colour = "red", size = 1)
+
+```
+
+
+3. Extract the diamonds that have very high and very low residuals. Is there anything unusual about these diamonds? Are they particularly bad or good, or do you think these are pricing errors?
+
+More smaller carat, fair cut, and F color diamonds in the residuals. I suspect that it is overpricing diamonds.
+
+```{r}
+
+# given
+mod_diamond2 <- lm(lprice ~ lcarat + color + cut + clarity, data = diamonds2)
+
+grid <- diamonds2 %>% 
+  data_grid(cut, .model = mod_diamond2) %>% 
+  add_predictions(mod_diamond2)
+
+diamonds2 <- diamonds2 %>% 
+  add_residuals(mod_diamond2, "lresid2")
+
+# select outliers above and below 1, -1 residuals
+diamonds3 <- diamonds2 %>%
+  filter(lresid2 > 1 | lresid2 < -1)
+diamonds3
+
+# plot them
+ggplot(diamonds3, aes(carat, lresid2)) + 
+  geom_point()
+
+ggplot(diamonds3, aes(color, lresid2)) + 
+  geom_point()
+
+ggplot(diamonds3, aes(cut, lresid2)) + 
+  geom_point()
+
+
+ggplot(diamonds3, aes(clarity, lresid2)) + 
+  geom_point()
+
+```
+
+
+
+4. Does the final model, mod_diamond2, do a good job of predicting diamond prices? Would you trust it to tell you how much to spend if you were buying a diamond?
+
+Yes you could use this model to tell you where the price fits into the overall picture. To compare to other models, you could compare Root mean sum squares or the mean absolute residual. Or I may use AIC.
+
+It pays to use common sense, if it looks too low, there may be another reason that you haven/t considered. Is it stolen? If it is higher, perhaps there is a historic reason the diamond is valued.
+
+```{r}
+# given
+mod_diamond2 <- lm(lprice ~ lcarat + color + cut + clarity, data = diamonds2)
+
+# untransform the prediction to put price in useful value
+grid <- diamonds2 %>% 
+  data_grid(cut, .model = mod_diamond2) %>% 
+  add_predictions(mod_diamond2) %>%
+  mutate(PriceTrans = 2^pred)
+
+# plot the cut by price to see the value
+ggplot(grid, aes(cut, PriceTrans)) + 
+  geom_point()
+
+# could do this for all the other factors
+
+# janorld recommends calculating some stats on the residuals to quantify the model
+lresid2_summary <- summarise(diamonds2,
+  rmse = sqrt(mean(lresid2^2)),
+  mae = mean(abs(lresid2)),
+  p025 = quantile(lresid2, 0.025),
+  p975 = quantile(lresid2, 0.975)
+)
+lresid2_summary
 
 ```
 
