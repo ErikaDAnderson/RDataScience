@@ -145,25 +145,252 @@ lresid_summary
 
 # 24.3.5 Flights and Days of Week Exercises
 
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
+library(tidyverse)
+library(modelr)
+options(na.action = na.warn)
+
+library(nycflights13) # data set
+library(lubridate) # dates
+library(broom) # glance function
+library(splines) # ns function
+```
+
+
 1. Use your Google sleuthing skills to brainstorm why there were fewer than expected flights on Jan 20, May 26, and Sep 1. (Hint: they all have the same explanation.) How would these days generalise to another year?
+
+These are Sundays before a US holiday in 2013: Martin Luther King Jr. Day, Memorial Day, Labor Day. Each year these dates will be slightly different since they are based on the third, last or first Monday of those months. People travel less on these Sundays because they have one more day to return home on long weekends. These days would be similar every year, although the dates would change.
+
 
 2. What do the three days with high positive residuals represent? How would these days generalise to another year?
 
+
 ```{r}
-daily %>% 
+
+# given code
+daily <- flights %>% 
+  mutate(date = make_date(year, month, day)) %>% 
+  group_by(date) %>% 
+  summarise(n = n()) %>%
+  mutate(wday = wday(date, label = TRUE)) 
+
+mod1 <- lm(n ~ wday, data = daily)
+
+# top three positive residuals
+daily %>%
+  add_residuals(mod1) %>%
   top_n(3, resid)
 
 ```
 
+
+These three dates are the two days of the weekend after US Thanksgiving, and the Saturday after Christmas, when more people are travelling, after being home with family. US Thanksgiving is always the fourth Thursday in November so the weekend dates to travel for Thanksgiviing are the same every year (JArnold agrees). But doesn't Christmas moves by one day every year? 
+
+
 3. Create a new variable that splits the wday variable into terms, but only for Saturdays, i.e. it should have Thurs, Fri, but Sat-summer, Sat-spring, Sat-fall. How does this model compare with the model with every combination of wday and term?
 
-. Create a new wday variable that combines the day of week, term (for Saturdays), and public holidays. What do the residuals of that model look like?
+```{r}
+
+# given code to calculate term
+term <- function(date) {
+  cut(date, 
+    breaks = ymd(20130101, 20130605, 20130825, 20140101),
+    labels = c("spring", "summer", "fall") 
+  )
+}
+
+# given to calculate term by date
+daily <- daily %>% 
+  mutate(term = term(date)) 
+
+# given model for flights by term and day of week
+mod2 <- lm(n ~ wday * term, data = daily)
+
+
+# calculate term by weekday and date
+daily <- daily %>% 
+  mutate(wday2 = case_when(
+    wday == "Sat" & term == "spring" ~ "Sat-spring",
+    wday == "Sat" & term == "summer" ~ "Sat-summer",
+    wday == "Sat" & term == "fall" ~ "Sat-fall",
+    wday != "Sat" ~ as.character(wday)
+  )) 
+
+# 
+mod3 <- lm(n ~ wday2, data = daily)
+
+
+# compare residuls of models
+daily %>% 
+  gather_residuals(mod2_resid = mod2, mod3_resid = mod3) %>%
+  ggplot(aes(date, resid, colour = model)) +
+  geom_line(alpha = 0.75)
+
+# taken from jarnold to compare models
+broom::glance(mod2) %>% select(r.squared, sigma, AIC, df)
+broom::glance(mod3) %>% select(r.squared, sigma, AIC, df)
+
+
+```
+
+A lower AIC, higher r-squared, lower sigma reflects a better model. In this case, I would select the model with weekday only using these stats.
+
+
+4. Create a new wday variable that combines the day of week, term (for Saturdays), and public holidays. What do the residuals of that model look like?
+
+```{r}
+
+# holidays from jarnold
+holidays_2013 <-
+  tribble(
+    ~holiday, ~date,
+    "New Year's Day", 20130101,
+    "Martin Luther King Jr. Day", 20130121,
+    "Washington's Birthday", 20130218,
+    "Memorial Day", 20130527,
+    "Independence Day", 20130704,
+    "Labor Day", 20130902,
+    "Columbus Day", 20131028,
+    "Veteran's Day", 20131111,
+    "Thanksgiving", 20131128,
+    "Christmas", 20131225
+  ) %>%
+  mutate(date = lubridate::ymd(date))
+
+# pull vector for US holidays
+US2013holidays <- holidays_2013 %>%
+  pull(date)
+
+# create new variable
+daily <- daily %>%
+  mutate(wday3 = case_when(
+    date %in% US2013holidays ~ "holiday",
+    wday == "Sat" & term == "spring" ~ "Sat-spring",
+    wday == "Sat" & term == "summer" ~ "Sat-summer",
+    wday == "Sat" & term == "fall" ~ "Sat-fall",
+    wday != "Sat" ~ as.character(wday)
+  ))
+
+mod4 <- lm(n ~ wday3, data = daily)
+
+# compare new mode with holidays with weekday model
+daily %>%
+  gather_residuals(mod2_resid = mod2, mod4_resid = mod4) %>%
+  ggplot(aes(date, resid, colour = model)) +
+  geom_line(alpha = 0.75)
+
+# taken from jarnold to compare models
+broom::glance(mod2) %>% select(r.squared, sigma, AIC, df)
+broom::glance(mod4) %>% select(r.squared, sigma, AIC, df)
+
+
+```
+
+The model with holidays is better since is has a lower AIC, lower sigma (residual standard deviation), and higher r-squared.
 
 5. What happens if you fit a day of week effect that varies by month (i.e. n ~ wday * month)? Why is this not very helpful?
 
+```{r}
+
+# make a month column
+daily <- daily %>%
+   mutate(month = month(date, label = TRUE))
+
+# make model with weekday and month
+mod5 <- lm(n ~ wday * month, data = daily)
+
+daily %>%
+  add_residuals(., mod5) %>%
+  ggplot(aes(date, resid)) +
+  geom_line()
+
+broom::glance(mod5) %>% select(r.squared, sigma, AIC, df)
+#summary(mod5)
+
+```
+
+AIC is worse, but r-squared is better. Too many degrees of freedom, since few observations for each day of week by month combination. JArnold says too many parameters with few observations give large standard errors, and make bad predictions.
+
+
 6. What would you expect the model n ~ wday + ns(date, 5) to look like? Knowing what you know about the data, why would you expect it to be not particularly effective?
+
+Note that ns function is in the splines library and "Generates the B-spline basis matrix for a natural cubic spline". 
+
+The main difference in this model is that the terms are additive and not interacting. The previous discussions show that the weekdays are interacting with the season so the terms cannot be additive as it ignores the influence of season on weekdays. When I run the spline interacting with weekday, the model gets better according to AIC and r-squared. 
+
+```{r}
+
+# model to test
+mod6 <- lm(n~ wday + ns(date, 5), data = daily)
+mod7 <- lm(n~ wday * ns(date, 5), data = daily)
+
+broom::glance(mod6)
+broom::glance(mod7)
+
+```
+
 
 7. We hypothesised that people leaving on Sundays are more likely to be business travellers who need to be somewhere on Monday. Explore that hypothesis by seeing how it breaks down based on distance and time: if it’s true, you’d expect to see more Sunday evening flights to places that are far away.
 
+```{r}
+
+dailyDis <- flights %>% 
+  mutate(date = make_date(year, month, day)) %>% 
+  group_by(date) %>% 
+  summarise(n = n(),
+            meanDis = mean(distance, na.rm = TRUE),
+            meanTime = mean(sched_dep_time, na.rm = TRUE)) %>%
+  mutate(wday = wday(date, label = TRUE)) 
+
+# graph
+ggplot(dailyDis) +
+  geom_boxplot(aes(wday, meanDis)) +
+  labs(title = "Mean Distance travelled")
+
+ggplot(dailyDis) +
+  geom_boxplot(aes(wday, meanTime)) +
+  labs(title = "Mean Time of Departure") +
+  scale_y_reverse()
+
+```
+
+I agree that Sundays traveller travel farther (except for Saturday travellers) and leave later in the day.
+
+
 8. It’s a little frustrating that Sunday and Saturday are on separate ends of the plot. Write a small function to set the levels of the factor so that the week starts on Monday.
+
+```{r}
+
+# my function to reorder the levels
+reorderwdaysFn <- function(x) {
+  x <- factor(x,
+              levels = c("Mon", "Tue", "Wed", "Thu", "Fri", "Sat","Sun"))
+  return(x)
+}
+
+# apply function
+daily <- daily %>%
+  mutate(wday = wday(date, label = TRUE))
+ggplot(daily, aes(reorderwdaysFn(wday), n)) +
+  geom_boxplot() +
+  labs(title = "My function",
+       x = "Day of Week", y = "Number of flights")
+
+# jarnold did it a different way
+library(forcats) # used for factors
+
+monday_first <- function(x) {
+  fct_relevel(x, levels(x)[-1])
+}
+
+daily <- daily %>%
+  mutate(wday = wday(date, label = TRUE))
+ggplot(daily, aes(monday_first(wday), n)) +
+  geom_boxplot() +
+  labs(title = "JArnold",
+       x = "Day of Week", y = "Number of flights")
+```
 
