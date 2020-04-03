@@ -43,7 +43,7 @@ ggplot(diamonds2, aes(caratTrans, lprice)) +
 
 2. If log(price) = a_0 + a_1 * log(carat), what does that say about the relationship between price and carat?
 
-The log relationship means there is an exponential relationship between carat and price, rather than linear. So if the carat goes up by 2, then the price goes up by a power. See jarnold for more details. The power is the log linear slope which is a_1.
+The log relationship means there is an exponential relationship between carat and price, rather than linear. So if the carat goes up by 2, then the price goes up by a power. See jrnold for more details. The power is the log linear slope which is a_1.
 
 ```{r}
 
@@ -188,7 +188,7 @@ daily %>%
 ```
 
 
-These three dates are the two days of the weekend after US Thanksgiving, and the Saturday after Christmas, when more people are travelling, after being home with family. US Thanksgiving is always the fourth Thursday in November so the weekend dates to travel for Thanksgiviing are the same every year (JArnold agrees). But doesn't Christmas moves by one day every year? 
+These three dates are the two days of the weekend after US Thanksgiving, and the Saturday after Christmas, when more people are travelling, after being home with family. US Thanksgiving is always the fourth Thursday in November so the weekend dates to travel for Thanksgiving are the same every year (Jrnold agrees). But doesn't Christmas moves by one day every year? 
 
 
 3. Create a new variable that splits the wday variable into terms, but only for Saturdays, i.e. it should have Thurs, Fri, but Sat-summer, Sat-spring, Sat-fall. How does this model compare with the model with every combination of wday and term?
@@ -217,10 +217,11 @@ daily <- daily %>%
     wday == "Sat" & term == "spring" ~ "Sat-spring",
     wday == "Sat" & term == "summer" ~ "Sat-summer",
     wday == "Sat" & term == "fall" ~ "Sat-fall",
-    wday != "Sat" ~ as.character(wday)
+    #wday != "Sat" ~ as.character(wday)
+    TRUE ~ as.character(wday)
   )) 
 
-# 
+# new model with sat term included
 mod3 <- lm(n ~ wday2, data = daily)
 
 
@@ -230,7 +231,7 @@ daily %>%
   ggplot(aes(date, resid, colour = model)) +
   geom_line(alpha = 0.75)
 
-# taken from jarnold to compare models
+# taken from jrnold to compare models
 broom::glance(mod2) %>% select(r.squared, sigma, AIC, df)
 broom::glance(mod3) %>% select(r.squared, sigma, AIC, df)
 
@@ -244,7 +245,7 @@ A lower AIC, higher r-squared, lower sigma reflects a better model. In this case
 
 ```{r}
 
-# holidays from jarnold
+# holidays from jrnold
 holidays_2013 <-
   tribble(
     ~holiday, ~date,
@@ -272,7 +273,8 @@ daily <- daily %>%
     wday == "Sat" & term == "spring" ~ "Sat-spring",
     wday == "Sat" & term == "summer" ~ "Sat-summer",
     wday == "Sat" & term == "fall" ~ "Sat-fall",
-    wday != "Sat" ~ as.character(wday)
+    #wday != "Sat" ~ as.character(wday)
+    TRUE ~ as.character(wday)
   ))
 
 mod4 <- lm(n ~ wday3, data = daily)
@@ -283,7 +285,7 @@ daily %>%
   ggplot(aes(date, resid, colour = model)) +
   geom_line(alpha = 0.75)
 
-# taken from jarnold to compare models
+# taken from jrnold to compare models
 broom::glance(mod2) %>% select(r.squared, sigma, AIC, df)
 broom::glance(mod4) %>% select(r.squared, sigma, AIC, df)
 
@@ -313,7 +315,7 @@ broom::glance(mod5) %>% select(r.squared, sigma, AIC, df)
 
 ```
 
-AIC is worse, but r-squared is better. Too many degrees of freedom, since few observations for each day of week by month combination. JArnold says too many parameters with few observations give large standard errors, and make bad predictions.
+AIC is worse, but r-squared is better. Too many degrees of freedom, since few observations for each day of week by month combination. Jrnold says too many parameters with few observations give large standard errors, and make bad predictions.
 
 
 6. What would you expect the model n ~ wday + ns(date, 5) to look like? Knowing what you know about the data, why would you expect it to be not particularly effective?
@@ -378,7 +380,7 @@ ggplot(daily, aes(reorderwdaysFn(wday), n)) +
   labs(title = "My function",
        x = "Day of Week", y = "Number of flights")
 
-# jarnold did it a different way
+# jrnold did it a different way
 library(forcats) # used for factors
 
 monday_first <- function(x) {
@@ -387,7 +389,7 @@ monday_first <- function(x) {
 
 ggplot(daily, aes(monday_first(wday), n)) +
   geom_boxplot() +
-  labs(title = "JArnold",
+  labs(title = "Jrnold",
        x = "Day of Week", y = "Number of flights")
 ```
 
