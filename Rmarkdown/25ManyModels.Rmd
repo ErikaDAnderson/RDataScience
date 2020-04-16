@@ -8,6 +8,111 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 # load libraries
+library(modelr)
 library(tidyverse)
+library(gapminder) # dataset on life expectancy and GDP
+library(broom) # functins for tidy data with models
+library(ggbeeswarm) # other methods to jitter
 
 ```
+
+25.2.5 gapminder Exercises
+
+1. A linear trend seems to be slightly too simple for the overall trend. Can you do better with a quadratic polynomial? How can you interpret the coefficients of the quadratic? (Hint you might want to transform year so that it has mean zero.)
+
+A quadratic polynomial is the format life expectancy = coefficent * (year)2 + residual error.
+The coeficients gives the direction of change (+ or -), and the amount the life expectancy would change per year. If the year is zero, the coefficient drops out and the remaining term is the average expected life span of a person in that country. For example Canada is 74.9 years over 1952-2007. 
+
+The quadratic polynomial fits the African curves better than the linear model, improving their R2 values. Nevertheless, Rwanda still is an outlier with a low r2 value even with the new model. The dip is due to a civil war in 1994, when there was a mass slaughter of TuTsi. Up to one million people were killed.
+
+```{r}
+
+# using given code
+by_country <- gapminder %>% 
+  group_by(country, continent) %>% 
+  nest()
+
+# new quadratic polynomial model 
+# using the hint by subtracting the median year within the function
+country_model_quad <- function(df) {
+  lm(lifeExp ~ poly(year - median(year), 2), data = df)
+}
+
+# apply new model to data frame
+by_country <- by_country %>% 
+  mutate(model = map(data, country_model_quad),
+  
+  # add residuals
+  resids = map2(data, model, add_residuals))
+
+resids <- unnest(by_country, resids)
+
+resids %>% 
+  ggplot(aes(year, resid, group = country)) +
+    geom_line(alpha = 1 / 3) + 
+    facet_wrap(~continent)
+
+glance <- by_country %>% 
+  mutate(glance = map(model, broom::glance)) %>% 
+  unnest(glance, .drop = TRUE)
+
+glance %>% 
+  ggplot(aes(continent, r.squared)) + 
+    geom_jitter(width = 0.5)
+
+bad_fit <- filter(glance, r.squared < 0.25)
+
+gapminder %>% 
+  semi_join(bad_fit, by = "country") %>% 
+  ggplot(aes(year, lifeExp, colour = country)) +
+    geom_line()
+
+# find out coeffiecents for Canada
+Canada <- by_country %>%
+  filter(country == "Canada")
+  
+Canada$model
+
+```
+
+
+2. Explore other methods for visualising the distribution of r2 per continent. You might want to try the ggbeeswarm package, which provides similar methods for avoiding overlaps as jitter, but uses deterministic methods.
+
+```{r}
+
+# violin scatterplot
+glance %>% 
+  ggplot(aes(continent, r.squared)) + 
+    geom_quasirandom(aes(color = continent))
+
+# another option
+glance %>% 
+  ggplot(aes(continent, r.squared)) + 
+    geom_beeswarm(aes(color = continent), dodge.width=.8)
+
+# use facets within beeswarm and AIC
+glance %>%
+  ggplot(aes(AIC, r.squared)) +
+  geom_quasirandom(groupOnX = FALSE) +
+  facet_grid(.~continent)
+
+```
+
+
+3. To create the last plot (showing the data for the countries with the worst model fits), we needed two steps: we created a data frame with one row per country and then semi-joined it to the original dataset. It’s possible to avoid this join if we use unnest() instead of unnest(.drop = TRUE). How?
+
+Use unnest on individual columns to pull out details.
+
+```{r}
+
+by_country %>% 
+  mutate(glance = map(model, broom::glance)) %>% 
+  unnest(glance) %>%
+  unnest(data) %>%
+  filter(r.squared < 0.25) %>%
+
+  ggplot(aes(year, lifeExp, colour = country)) +
+    geom_line()
+
+```
+
