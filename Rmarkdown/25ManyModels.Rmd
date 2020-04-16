@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(modelr)
 library(tidyverse)
 library(gapminder) # dataset on life expectancy and GDP
-library(broom) # functins for tidy data with models
+library(broom) # functions for tidy data with models
 library(ggbeeswarm) # other methods to jitter
 
 ```
@@ -20,10 +20,10 @@ library(ggbeeswarm) # other methods to jitter
 
 1. A linear trend seems to be slightly too simple for the overall trend. Can you do better with a quadratic polynomial? How can you interpret the coefficients of the quadratic? (Hint you might want to transform year so that it has mean zero.)
 
-A quadratic polynomial is the format life expectancy = coefficent * (year)2 + residual error.
+A quadratic polynomial is the format life expectancy = coefficient * (year)2 + residual error.
 The coeficients gives the direction of change (+ or -), and the amount the life expectancy would change per year. If the year is zero, the coefficient drops out and the remaining term is the average expected life span of a person in that country. For example Canada is 74.9 years over 1952-2007. 
 
-The quadratic polynomial fits the African curves better than the linear model, improving their R2 values. Nevertheless, Rwanda still is an outlier with a low r2 value even with the new model. The dip is due to a civil war in 1994, when there was a mass slaughter of TuTsi. Up to one million people were killed.
+The quadratic polynomial fits the African curves better than the linear model, improving their R2 values. Nevertheless, Rwanda still is an outlier with a low r2 value even with the new model. The dip is due to a civil war in 1994, when there was a mass slaughter of Tutsi. Up to one million people were killed.
 
 ```{r}
 
@@ -107,12 +107,38 @@ Use unnest on individual columns to pull out details.
 
 by_country %>% 
   mutate(glance = map(model, broom::glance)) %>% 
-  unnest(glance) %>%
-  unnest(data) %>%
+  unnest(cols = c(glance, data)) %>%
   filter(r.squared < 0.25) %>%
 
   ggplot(aes(year, lifeExp, colour = country)) +
     geom_line()
+
+```
+
+
+25.4.5 Creating List Columns Exercises
+
+1. List all the functions that you can think of that take a atomic vector and return a list.
+
+2. Brainstorm useful summary functions that, like quantile(), return multiple values.
+
+3. What’s missing in the following data frame? How does quantile() return that missing piece? Why isn’t that helpful here?
+
+```{r}
+# given
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(q = list(quantile(mpg))) %>% 
+  unnest()
+
+```
+
+4, What does this code do? Why might might it be useful?
+
+```{r}
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise_each(funs(list))
 
 ```
 
