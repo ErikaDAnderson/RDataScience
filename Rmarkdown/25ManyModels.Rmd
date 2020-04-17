@@ -83,7 +83,7 @@ Canada$model
 # violin scatterplot
 glance %>% 
   ggplot(aes(continent, r.squared)) + 
-    geom_quasirandom(aes(color = continent))
+    geom_quasirandom()
 
 # another option
 glance %>% 
@@ -107,7 +107,9 @@ Use unnest on individual columns to pull out details.
 
 by_country %>% 
   mutate(glance = map(model, broom::glance)) %>% 
-  unnest(cols = c(glance, data)) %>%
+  #unnest(cols = c(glance, data)) %>%
+  unnest(glance) %>%
+  unnest(data) %>%
   filter(r.squared < 0.25) %>%
 
   ggplot(aes(year, lifeExp, colour = country)) +
