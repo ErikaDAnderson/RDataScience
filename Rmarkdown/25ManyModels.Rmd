@@ -122,25 +122,108 @@ by_country %>%
 
 1. List all the functions that you can think of that take a atomic vector and return a list.
 
+Many of the splitting functions with stringr and stringi give lists. A list column would be useful when different numbers of results are returned for different rows. Many models return lists, and spatial functions are often returned as lists. Which is why this section is so useful, if mind bending.
+
+
+```{r}
+# make data frame
+dat <- tibble(a, b = (a * 2))
+
+# make model
+mod <- lm(b ~ a, data = dat)
+mod
+str(mod)
+
+```
+
+
 2. Brainstorm useful summary functions that, like quantile(), return multiple values.
+
+Jrnold duggests range and boxplot.stats. I like the boxplot.stats and will consider using it. Generally, I have used mutate with min and max to get range within dataframe, but see the simplity to using range with a list column.
+
 
 3. What’s missing in the following data frame? How does quantile() return that missing piece? Why isn’t that helpful here?
 
+This is a repeat from the text, and prob for each quantile is missing after unnest. But there is a way to include it.
+
 ```{r}
-# given
+# code given
 mtcars %>% 
   group_by(cyl) %>% 
   summarise(q = list(quantile(mpg))) %>% 
-  unnest()
+  unnest(cols = c(q))
+
+# which quantiles are given?
+?quantile
+seq(0, 1, 0.25)
+
+# another way to get quantiles and their prob
+# I changed it to use the default quantiles so I could compare the data frames
+probs <- seq(0, 1, 0.25)
+mtcars %>% 
+  group_by(cyl) %>% 
+  summarise(p = list(probs), q = list(quantile(mpg, probs))) %>% 
+  unnest(cols = c(p, q))
 
 ```
 
 4, What does this code do? Why might might it be useful?
 
+This code groups all the rows from mtcars by cylinder, creating list columns for each other parameter with a list of all the values for that number of cylinders. It may be useful is you want to apply a function to each group of cylinders using the original values of parameters. I rewrote with newer version of code given the warning that funs() is deprecated now (seee below). 
+
+
 ```{r}
-mtcars %>% 
+given4 <- mtcars %>% 
   group_by(cyl) %>% 
   summarise_each(funs(list))
+given4
+
+# let's look at what's inside
+cat("mpg\n")
+given4$mpg
+cat("\nhp\n")
+given4$hp
+# note that this gives index values and not the number of cylinders
+
+# can we rewrite with newer version given in warning?
+mtcars %>%
+  group_by(cyl) %>%
+  summarise_each(lst(list)) 
+# where does the second list come from? Is is just a function? 
+# then why two lst(list) needed
+
+# ?summarise_each is deprecated too in favour of mutate_all
+# try using it to produce similar dataframe
+# not quite there, as it has one row per observation with lists of values for each
+mtcars %>%
+  group_by(cyl) %>%
+  mutate_all(., list)
 
 ```
 
+Copy of Warning Given only once per session: 
+
+funs() is soft deprecated as of dplyr 0.8.0
+Please use a list of either functions or lambdas: 
+
+  # Simple named list: 
+  list(mean = mean, median = median)
+
+  # Auto named with `tibble::lst()`: 
+  tibble::lst(mean, median)
+
+  # Using lambdas
+  list(~ mean(., trim = .2), ~ median(., na.rm = TRUE))
+This warning is displayed once per session.
+
+
+# 25.5.3 Simplifiying List Columns Exercises
+
+1. Why might the lengths() function be useful for creating atomic vector columns from list-columns?
+
+If lengths is the same, then unnest could work. So length function could be used to test if unnest would work.
+
+2. List the most common types of vector found in a data frame. What makes lists different?
+
+character, double, integer, logical
+Lists are difference because they can contain more than one type of value and difference amounts.
