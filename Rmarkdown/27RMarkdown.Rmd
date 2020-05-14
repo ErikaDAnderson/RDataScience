@@ -1,0 +1,47 @@
+---
+title: "27 R Markdown"
+date: "May 2020"
+output: 
+      html_document: default
+      pdf_document: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
+library(tidyverse)
+
+```
+
+# 27.2.1 R Markdown Basicis Exercises
+
+1. Create a new notebook using File > New File > R Notebook. Read the instructions. Practice running the chunks. Verify that you can modify the code, re-run it, and see modified output.
+
+Do togther
+
+2. Create a new R Markdown document with File > New File > R Markdown… Knit it by clicking the appropriate button. Knit it by using the appropriate keyboard short cut. Verify that you can modify the input and see the output update.
+
+Keyboard shortcut is Cntrl + Shift + K
+
+
+3. Compare and contrast the R notebook and R markdown files you created above. How are the outputs similar? How are they different? How are the inputs similar? How are they different? What happens if you copy the YAML header from one to the other?
+
+The biggest difference is that the R code is not run during the knit in the notebook. If you change the header to the same as the R markdown file, the notebook becomes a R markdown file and runs the R code when it knits. 
+
+I just learned that you can use the knitted the notebook with the nb.html file to reproduce the R notebook, but you cannot use the html or pdf to reproduce the R markdown file
+
+4. Create one new R Markdown document for each of the three built-in formats: HTML, PDF and Word. Knit each of the three documents. How does the output differ? How does the input differ? (You may need to install LaTeX in order to build the PDF output — RStudio will prompt you if this is necessary.)
+
+You need to change the header to word_document or pdf_document, or use the drop down arrow beside knit to make the different formats. It is also good to know that you can produce more than one format with the file by changing the header output yaml to output: pdf_document: default word_document:: default. 
+
+```{r}
+# another way to render multiple formats using R code in console
+#rmarkdown::render(<your-rmd-file.rmd>, output_format ="all")
+
+```
+
+
+Generally, html is preferred to work in as it can become any other format but some of the others cannot go backwards.
+
