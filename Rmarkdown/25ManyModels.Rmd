@@ -192,12 +192,6 @@ mtcars %>%
 # where does the second list come from? Is is just a function? 
 # then why two lst(list) needed
 
-# ?summarise_each is deprecated too in favour of mutate_all
-# try using it to produce similar dataframe
-# not quite there, as it has one row per observation with lists of values for each
-mtcars %>%
-  group_by(cyl) %>%
-  mutate_all(., list)
 
 ```
 
@@ -226,4 +220,9 @@ If lengths is the same, then unnest could work. So length function could be used
 2. List the most common types of vector found in a data frame. What makes lists different?
 
 character, double, integer, logical
-Lists are difference because they can contain more than one type of value and difference amounts.
+Lists are different because they can contain more than one type of value and difference amounts.
+
+# Making tidy data with broom
+
+The functions glance (gives model stats), tidy (gives model cooeffiecents) and augment (adds predictions, residuals, and se to data frame) are useful.
+
