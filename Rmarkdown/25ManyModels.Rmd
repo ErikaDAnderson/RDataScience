@@ -219,7 +219,7 @@ If lengths is the same, then unnest could work. So length function could be used
 
 2. List the most common types of vector found in a data frame. What makes lists different?
 
-character, double, integer, logical
+character, double, integer, logical, numeric, factor
 Lists are different because they can contain more than one type of value and difference amounts.
 
 # Making tidy data with broom
