@@ -15,7 +15,7 @@ library(tidyverse)
 
 ```
 
-# 27.2.1 R Markdown Basicis Exercises
+## 27.2.1 R Markdown Basicis Exercises
 
 1. Create a new notebook using File > New File > R Notebook. Read the instructions. Practice running the chunks. Verify that you can modify the code, re-run it, and see modified output.
 
@@ -41,9 +41,46 @@ You need to change the header to word_document or pdf_document, or use the drop 
 ```{r}
 # another way to render multiple formats using R code in console
 #rmarkdown::render(<your-rmd-file.rmd>, output_format ="all")
-
 ```
 
 
 Generally, html is preferred to work in as it can become any other format but some of the others cannot go backwards.
+
+## 27.3.1 Exercises
+
+1. Practice what you’ve learned by creating a brief CV. The title should be your name, and you should include headings for (at least) education or employment. Each of the sections should include a bulleted list of jobs/degrees. Highlight the year in bold.
+
+see PracticeCV.Rmd file
+
+2. Using the R Markdown quick reference, figure out how to:
+
+  * Add a footnote.
+  [footnote][1]  
+  At the bottom of the document  
+
+  
+  * Add a horizontal rule.
+    three or more astericks or dashes
+    
+****
+
+____
+  
+  * Add a block quote.
+  
+> Use the greater than symbol to add block quotes
+  
+3. Copy and paste the contents of diamond-sizes.Rmd from <https://github.com/hadley/r4ds/tree/master/rmarkdown> in to a local R markdown document. Check that you can run it, then add text after the frequency polygon that describes its most striking features.
+
+[1]: <https://r4ds.had.co.nz/r-markdown.html#exercises-71> 
+
+## 27.4.7 Code Chunks Exercises
+
+1. Add a section that explores how diamond sizes vary by cut, colour, and clarity. Assume you’re writing a report for someone who doesn’t know R, and instead of setting echo = FALSE on each chunk, set a global option.
+
+2. Download diamond-sizes.Rmd from https://github.com/hadley/r4ds/tree/master/rmarkdown. Add a section that describes the largest 20 diamonds, including a table that displays their most important attributes.
+
+3. Modify diamonds-sizes.Rmd to use comma() to produce nicely formatted output. Also include the percentage of diamonds that are larger than 2.5 carats.
+
+4. Set up a network of chunks where d depends on c and b, and both b and c depend on a. Have each chunk print lubridate::now(), set cache = TRUE, then verify your understanding of caching.
 
