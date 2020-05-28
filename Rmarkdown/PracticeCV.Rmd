@@ -1,0 +1,22 @@
+---
+title: "Erika Anderson"
+date: "5/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is a practice CV for R for Data Science from Exercise 27.3.1.
+
+#  Education
+
+* Doctorate. University of Victoria. **2001**
+
+
+# Employment
+
+* Biologist, Fisheries and Oceans Canada. **2017-present**
+
+
