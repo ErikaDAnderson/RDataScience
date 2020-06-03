@@ -19,4 +19,9 @@ This is a practice CV for R for Data Science from Exercise 27.3.1.
 
 * Biologist, Fisheries and Oceans Canada. **2017-present**
 
+^[this is my footnote]
+
+  
+> Use the greater than symbol to add block quotes
+
 
