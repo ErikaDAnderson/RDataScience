@@ -30,7 +30,7 @@ Keyboard shortcut is Cntrl + Shift + K
 
 The biggest difference is that the R code is not run during the knit in the notebook. If you change the header to the same as the R markdown file, the notebook becomes a R markdown file and runs the R code when it knits. 
 
-I just learned that you can use the knitted the notebook with the nb.html file to reproduce the R notebook, but you cannot use the html or pdf to reproduce the R markdown file
+You can also use the knitted the notebook with the nb.html file to reproduce the R notebook, but you cannot use the html or pdf to reproduce the R markdown file
 
 In the html file you can interactively hide and show the code.
 
@@ -44,7 +44,7 @@ You need to change the header to word_document or pdf_document, or use the drop 
 ```
 
 
-Generally, html is preferred to work in as it can become any other format but some of the others cannot go backwards.
+Generally, html is preferred to work in as it can become any other format but some of the others cannot always go backwards.
 
 ## 27.3.1 Exercises
 
@@ -55,8 +55,7 @@ see PracticeCV.Rmd file
 2. Using the R Markdown quick reference, figure out how to:
 
   * Add a footnote.
-  [footnote][1]  
-  At the bottom of the document  
+^[this is my footnote]
 
   
   * Add a horizontal rule.
