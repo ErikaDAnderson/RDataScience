@@ -1,0 +1,23 @@
+---
+title: "28 Graphics for Communication"
+date: "June 2020"
+output: 
+      html_document: default
+      
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# load libraries
+library(tidyverse)
+
+```
+
+## 28.2.1 Label Exercises
+
+1.Create one plot on the fuel economy data with customised title, subtitle, caption, x, y, and colour labels.
+
+2.The geom_smooth() is somewhat misleading because the hwy for large engines is skewed upwards due to the inclusion of lightweight sports cars with big engines. Use your modelling tools to fit and display a better model.
+
+3.Take an exploratory graphic that you’ve created in the last month, and add informative titles to make it easier for others to understand.
