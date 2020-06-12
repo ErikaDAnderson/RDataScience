@@ -53,18 +53,29 @@ Download diamond-sizes.Rmd from https://github.com/hadley/r4ds/tree/master/rmark
 
 ```{r twenty}
 
-large20 <- diamonds %>% 
+diamonds %>% 
   arrange(-carat) %>%
   slice(1:20) %>%
-  select(carat, cut, color, clarity, price)
-
-# make column names title case
-colnames(large20) <- stringr::str_to_title(colnames(large20))
-
-knitr::kable(
-  large20, 
+  dplyr::rename(Carat = carat,
+                Cut = cut,
+                Clarity = clarity,
+                Price = price,
+                Color = color) %>%
+  select(Carat, Cut, Color, Clarity, Price) %>%
+  
+  knitr::kable( ., 
   caption = "Twenty Largest Diamonds"
 )
+
+
+# # another way to do it
+# # make column names title case
+# colnames(large20) <- stringr::str_to_title(colnames(large20))
+# 
+# knitr::kable(
+#   large20, 
+#   caption = "Twenty Largest Diamonds"
+# )
 
 ```
 
@@ -80,12 +91,12 @@ big <- diamonds %>%
   count() %>%
   pull(n)
 
-perBig <- stringr::str_c(comma(big/nrow(diamonds) * 100), "%")
-
-cat("Percentage of Diamonds > 2.5 is", comma(perBig))
+perBig <- big/nrow(diamonds) * 100
 
 
 ```
+
+Percentage of diamonds >2.5 is `r comma(perBig)` %.
 
 ## Code Chunks 27.4.7.4
 Set up a network of chunks where d depends on c and b, and both b and c depend on a. Have each chunk print lubridate::now(), set cache = TRUE, then verify your understanding of caching.
@@ -94,7 +105,7 @@ lubridate::now()
 
 ```
 
-```{r b, dependson= "a", cache = TRUE}
+```{r b, dependson= "a", cache = FALSE}
 
 lubridate::now()
 
