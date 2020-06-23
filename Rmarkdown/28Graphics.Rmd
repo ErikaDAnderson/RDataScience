@@ -12,12 +12,137 @@ knitr::opts_chunk$set(echo = TRUE)
 # load libraries
 library(tidyverse)
 
+# change default graph type to one I like
+theme_set(theme_bw())
+
+# load libraries for my graphic
+library(ggmap) # map of canada
+library(ggpubr) # panel of plots
+library(rgdal) # shapefiles
+
+
 ```
 
 ## 28.2.1 Label Exercises
 
 1.Create one plot on the fuel economy data with customised title, subtitle, caption, x, y, and colour labels.
 
+```{r}
+# given but change labels
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Fuel economy changes by car type",
+       subtitle = "(Two seater sports cars are the exception)",
+       caption = "Exercise 28.2.1",
+    x = "Engine displacement (L)",
+    y = "Highway fuel economy (mpg)",
+    colour = "Car type"
+  )
+
+```
+
+
 2.The geom_smooth() is somewhat misleading because the hwy for large engines is skewed upwards due to the inclusion of lightweight sports cars with big engines. Use your modelling tools to fit and display a better model.
 
+```{r}
+
+ggplot(mpg, aes(displ, hwy, color = class)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Different fuel effciency in different car classes",
+       subtitle = "All negative relationships except 2 seaters",
+       caption = "Exercise 28.2.2",
+    x = "Engine displacement (L)",
+    y = "Highway fuel economy (mpg)",
+    colour = "Car type"
+  )
+
+# try different models
+mod_displ <- lm(hwy ~ displ, data = mpg)
+mod_class <- lm(hwy ~ class, data = mpg)
+mod_displ_class <- lm(hwy ~ displ + class, data = mpg)
+mod_displ_class_interact <- lm(hwy ~ displ * class, data = mpg)
+
+# compare models and choose smallest AIC
+AIC(mod_displ, mod_class, mod_displ_class, mod_displ_class_interact)
+
+# graph residuals
+mpg %>% 
+  modelr::add_residuals(., mod_displ_class_interact) %>%
+  ggplot(aes(displ, resid, color = class)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE) +
+  labs(title = "Car size and type model removed trend in fuel effeciency",
+       subtitle = "There is more variation for smaller emgines",
+       x = "Displacement (L)",
+       y = "Residuals after Car Class Influence Removed")
+
+```
+
+
 3.Take an exploratory graphic that you’ve created in the last month, and add informative titles to make it easier for others to understand.
+
+```{r}
+
+########################################
+# map tows
+########################################
+
+# load shapefile of coast
+shapefile <- readOGR(here::here("Rmarkdown", "Input", "Spatial"), "Land", verbose = FALSE)
+
+# load tow data
+dry_gsi <- read_csv(here::here("Rmarkdown", "Input", "dry_gsi_loc.csv"),
+                    col_types =   cols(
+                      .default = col_double(),
+                      FISH_NUMBER = col_character()))
+
+# convert to a dataframe for use in ggplot2
+shapefile_df <- fortify(shapefile)
+
+# get map of north america
+nAmerica <- map_data("world") %>% 
+  filter(region %in% c("Canada", "USA"))
+
+# make map of north america with bounding box
+can <- ggplot() +
+  geom_map(data = nAmerica, map = nAmerica, aes(long, lat, map_id = region),
+           color = "black", fill = "gray90") +
+  coord_quickmap() +
+  xlim(-150, -55) +
+  ylim(30, 70) +
+  # add bounding box showing location of BC map
+  geom_rect(aes(xmin = -137, xmax = -122, 
+                ymax = 48, ymin = 59), 
+            fill = NA, color = "red", size = 1) +
+  geom_text(aes(-105, 55), label = "Canada") +
+  geom_text(aes(-103, 40), label = "USA") +
+    labs(x = "Longitude",
+         y = "Latitude",
+         title = "Map of North America with Box") +
+  theme(panel.grid = element_blank(),
+        strip.background = element_rect(fill = "white")) 
+
+# Display tow locations on map
+  bc <- ggplot(dry_gsi, aes(LONG, LAT)) +
+  geom_path(data = shapefile_df,
+            aes(long, lat, group = group),
+            color = "darkgrey", na.rm = TRUE) +
+  geom_point(shape = 16, color = "darkred") +
+  coord_quickmap() +
+  theme(panel.grid = element_blank(),
+        strip.background = element_rect(fill = "white")) +
+  xlim(-137, -122) +
+  ylim(48, 59) +
+  labs(x = "Longitude",
+       y = "Latitude",
+       title = "BC Coast with Salmon Tows",
+         caption = "Source: HSSALMON")
+  
+  mapstogether <- ggarrange(can, bc, labels = "AUTO")
+  
+  mapstogether
+
+```
+
