@@ -146,3 +146,170 @@ can <- ggplot() +
 
 ```
 
+## 28.3.1 Exercises
+
+1.Use geom_text() with infinite positions to place text at the four corners of the plot.
+
+```{r}
+
+label <- tibble(
+  displ = c(Inf, -Inf, -Inf, Inf), 
+  hwy = c(Inf, Inf, -Inf, -Inf),
+  label = c("Top Right", "Top Left", "Bottom Left", "Bottom Right"),
+  vjust = c("top", "top", "bottom", "bottom"),
+  hjust = c("right", "left", "left", "right")
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_text(aes(label = label, vjust = vjust, hjust = hjust), data = label) 
+# note that vjust and hjust need to be inside aes() to work
+
+```
+
+
+2.Read the documentation for annotate(). How can you use it to add a text label to a plot without having to create a tibble?
+```{r}
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  annotate("text", x = 5.5, y = 35, label = "test annotate")
+
+```
+
+
+3.How do labels with geom_text() interact with faceting? How can you add a label to a single facet? How can you put a different label in each facet? (Hint: think about the underlying data.)
+
+Labels are the same in all facets, or they repeat within facets causing blurry text. Use a new data frame to add labels different in facets
+
+```{r}
+
+# example in facets that produces labels same in all
+label <- tibble(
+  displ = Inf,
+  hwy = Inf,
+  label = "Labels in facets"
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(~class) +
+  geom_text(aes(label = label),
+    data = label, vjust = "top", hjust = "right")
+
+# try again with facets different
+label <- tibble(
+  displ = Inf,
+  hwy = Inf,
+  label = c("compact text", "Midsize text", "SUV text", "2 seater text", "Minivan text", "Pickup text", "Subcompact text"),
+  class = unique(mpg$class)
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  facet_wrap(~class) +
+  geom_text(aes(label = label),
+    data = label, vjust = "top", hjust = "right")
+
+```
+
+
+4.What arguments to geom_label() control the appearance of the background box?
+
+
+```{r}
+
+label <- tibble(
+  displ = c(Inf, -Inf, -Inf, Inf), 
+  hwy = c(Inf, Inf, -Inf, -Inf),
+  label = c("Top Right", "Top Left", "Bottom Left", "Bottom Right"),
+  vjust = c("top", "top", "bottom", "bottom"),
+  hjust = c("right", "left", "left", "right")
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_label(aes(label = label, vjust = vjust, hjust = hjust), data = label, color = "red",
+              label.padding = unit(0.5, "lines"), # space around labels; default 0.25 lines
+              label.r = unit(0.3, "lines"), # rounded corners; default 0.15 lines
+              label.size = 0.3) # size of border in mm; 0.25 derfault) 
+
+# only works with geom_label (not geom_text)
+# I would use other methods such as annotate (few labels) or geom_label_repel (many labels)
+
+```
+
+5.What are the four arguments to arrow()? How do they work? Create a series of plots that demonstrate the most important options.
+
+arrow specifies arrow head on geom_segment and geom_curve
+
+angle
+The angle of the arrow head in degrees (smaller numbers produce narrower, pointier arrows). Essentially describes the width of the arrow head.
+
+length	
+A unit specifying the length of the arrow head (from tip to base).
+
+ends	
+One of "last", "first", or "both", indicating which ends of the line to draw arrow heads.
+
+type	
+One of "open" or "closed" indicating whether the arrow head should be a closed triangle.
+
+
+```{r}
+
+df = tibble(
+  x1 = 3,
+  x2 = 5,
+  y1 = 25,
+  y2 = 16
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  labs(subtitle = "curve with default arrow") +
+  geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
+             data = df,
+             arrow = arrow())
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  labs(subtitle = "curve with arrow length") +
+  geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
+             data = df,
+             arrow = arrow(length = unit(5, "mm")))
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  labs(subtitle = "curve with arrow length and angle") +
+  geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
+             data = df,
+             arrow = arrow(length = unit(5, "mm"),
+                           angle = 70)
+             )
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  labs(subtitle = "curve with arrow length, angle, and end") +
+  geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
+             data = df,
+             arrow = arrow(length = unit(5, "mm"),
+                           angle = 70,
+                           ends = "both")
+             )
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  labs(subtitle = "curve with arrow length, angle, end, and type") +
+  geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
+             data = df,
+             arrow = arrow(length = unit(5, "mm"),
+                           angle = 70,
+                           ends = "last",
+                           type = "closed")
+             )
+
+
+
+```
+
