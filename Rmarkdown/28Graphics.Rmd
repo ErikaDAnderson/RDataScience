@@ -163,7 +163,8 @@ label <- tibble(
 ggplot(mpg, aes(displ, hwy)) +
   geom_point() +
   geom_text(aes(label = label, vjust = vjust, hjust = hjust), data = label) 
-# note that vjust and hjust need to be inside aes() to work
+# note that vjust and hjust need to be inside aes() to work if in tibble
+# use outside aes if not in tibble
 
 ```
 
@@ -173,7 +174,13 @@ ggplot(mpg, aes(displ, hwy)) +
 
 ggplot(mpg, aes(displ, hwy)) +
   geom_point() +
-  annotate("text", x = 5.5, y = 35, label = "test annotate")
+  annotate("text", x = 5.5, y = 35, label = "test annotate") +
+  annotate("segment", x = 2.5, xend = 4, y = 15, yend = 25,
+  colour = "blue") +
+  annotate("pointrange", x = 3.5, y = 20, ymin = 12, ymax = 28,
+  colour = "red", size = 1.5) +
+  annotate("rect", xmin = 3, xmax = 4.2, ymin = 12, ymax = 21,
+  alpha = .2)
 
 ```
 
@@ -211,6 +218,28 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_text(aes(label = label),
     data = label, vjust = "top", hjust = "right")
 
+# # don't do this way
+# ggplot(mpg, aes(displ, hwy)) +
+#   geom_point() +
+#   facet_wrap(~class) +
+#   geom_text(aes(label = class),
+#     vjust = "top", hjust = "right")
+
+# try with facets
+label <- tibble(
+  displ = c(Inf, -Inf, -Inf, Inf), 
+  hwy = c(Inf, Inf, -Inf, -Inf),
+  label = c("Top Right", "Top Left", "Bottom Left", "Bottom Right"),
+  vjust = c("top", "top", "bottom", "bottom"),
+  hjust = c("right", "left", "left", "right")
+)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_text(aes(label = label, vjust = vjust, hjust = hjust), data = label) +
+  facet_wrap(~class)
+# only works if in aes, not manual outside aes
+
 ```
 
 
@@ -229,7 +258,8 @@ label <- tibble(
 
 ggplot(mpg, aes(displ, hwy)) +
   geom_point() +
-  geom_label(aes(label = label, vjust = vjust, hjust = hjust), data = label, color = "red",
+  geom_label(aes(label = label, vjust = vjust, hjust = hjust), data = label, 
+             color = "red", alpha = 0.5, # change color and transparency of labels
               label.padding = unit(0.5, "lines"), # space around labels; default 0.25 lines
               label.r = unit(0.3, "lines"), # rounded corners; default 0.15 lines
               label.size = 0.3) # size of border in mm; 0.25 derfault) 
@@ -304,7 +334,7 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_curve(aes(x = x1, y = y1, xend = x2, yend = x2),
              data = df,
              arrow = arrow(length = unit(5, "mm"),
-                           angle = 70,
+                           angle = 20,
                            ends = "last",
                            type = "closed")
              )
