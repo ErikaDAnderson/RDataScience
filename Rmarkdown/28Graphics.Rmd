@@ -487,6 +487,5 @@ ggplot(diamonds, aes(carat, price)) +
   geom_point(aes(colour = cut), alpha = 1/20) +
   guides(colour = guide_legend(override.aes = list(size = 4, alpha = 1))) 
 
-
 ```
 
