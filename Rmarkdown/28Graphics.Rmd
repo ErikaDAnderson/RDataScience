@@ -146,7 +146,7 @@ can <- ggplot() +
 
 ```
 
-## 28.3.1 Exercises
+## 28.3.1 Annotations Exercises
 
 1.Use geom_text() with infinite positions to place text at the four corners of the plot.
 
@@ -339,6 +339,153 @@ ggplot(mpg, aes(displ, hwy)) +
                            type = "closed")
              )
 
+
+
+```
+
+## 28.4.4 Scales Exercises
+
+1.Why doesn’t the following code override the default scale?
+
+Look at ?geom_hex for decription to find "Divides the plane into regular hexagons, counts the number of cases in each hexagon, and then (by default) maps the number of cases to the hexagon **fill**."  
+So geom_hex uses fill as the aes, not colour, so the scale functions needs to call fill instead of colour
+
+```{r}
+
+# given code
+
+df <- tibble(
+  x = rnorm(10000),
+  y = rnorm(10000)
+)
+
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  scale_colour_gradient(low = "white", high = "red") +
+  coord_fixed()
+
+# try with modification
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  scale_fill_gradient(low = "white", high = "red") +
+  coord_fixed()
+
+```
+
+
+2.What is the first argument to every scale? How does it compare to labs()?
+
+The first argument to every scale is name. Name of the scale that defaults to waiver(). If default, then the name is taken from the first mapping used for that aesthetic. From the help file: "The name of the scale. Used as the axis or legend title. If waiver(), the default, the name of the scale is taken from the first mapping used for that aesthetic. If NULL, the legend title will be omitted."
+
+This means you can rename an axis using name. This is a different way of doing the same as labs(x = "New Name")
+
+```{r}
+
+# given in scales section
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(15, 40, by = 5))
+
+# with name to rename y axis
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(name = "Highway",
+                     breaks = seq(15, 40, by = 5))
+
+# with labs to rename y axis
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(15, 40, by = 5)) +
+  labs(y = "Highway Another Way")
+
+
+```
+
+
+3.Change the display of the presidential terms by:
+
+-Combining the two variants shown above.
+-Improving the display of the y axis.
+-Labelling each term with the name of the president.
+-Adding informative plot labels.
+-Placing breaks every 4 years (this is trickier than it seems!).
+
+```{r}
+
+# given
+presidential %>%
+  mutate(id = 33 + row_number()) %>%
+  ggplot(aes(start, id)) +
+    geom_point() +
+    geom_segment(aes(xend = end, yend = id)) +
+    scale_x_date(NULL, breaks = presidential$start, date_labels = "'%y")
+
+# given
+presidential %>%
+  mutate(id = 33 + row_number()) %>%
+  ggplot(aes(start, id, colour = party)) +
+    geom_point() +
+    geom_segment(aes(xend = end, yend = id)) +
+    scale_colour_manual(values = c(Republican = "red", Democratic = "blue"))
+
+# Combining the two variants shown above
+presidential %>%
+  mutate(id = 33 + row_number()) %>%
+  ggplot(aes(start, id, colour = party)) +
+    geom_point() +
+    geom_segment(aes(xend = end, yend = id)) +
+    scale_colour_manual(values = c(Republican = "red", Democratic = "blue")) +
+    scale_x_date(NULL, breaks = presidential$start, date_labels = "'%y")
+
+# vector for labels
+labels <- presidential$name
+
+# vector for breaks in years
+minYear <- lubridate:::year(min(presidential$start))
+maxYear <- lubridate::year(max(presidential$start))
+yearBreaks4 <- lubridate:::make_date(seq(from = minYear, to = maxYear, by = 4))
+
+    
+  presidential %>%
+    # Improving the display of the y axis
+    # uses forcats to create factor variable in original historic order
+    mutate(betterID = fct_inorder(name)) %>% 
+    ggplot(aes(start, betterID, colour = party)) +
+    geom_point() +
+    geom_segment(aes(xend = end, yend = betterID)) +
+    scale_colour_manual(values = c(Republican = "red", Democratic = "blue")) +
+    scale_x_date(NULL, breaks = presidential$start, date_labels = "'%y") +
+    
+    # Labelling each term with the name of the president
+    #geom_label(label = labels, nudge_y = 0.25, nudge_x = 20) +
+    
+    # Adding informative plot 
+    scale_y_discrete(name = "Names of Presidents") +
+    scale_x_date(name = "Years in Office",
+                 # place breaks every 4 years
+                 breaks = yearBreaks4,
+                 date_labels = "'%y") +
+    # rename legend
+    theme(legend.position = "bottom") +
+    labs(color = "Party",
+         subtitle = "US Presidents since 1953") 
+
+
+```
+
+4.Use override.aes to make the legend on the following plot easier to see.
+
+
+```{r}
+
+# given code
+ggplot(diamonds, aes(carat, price)) +
+  geom_point(aes(colour = cut), alpha = 1/20)
+
+# over ride with override.aes to make solid, bigger points in legend only
+ggplot(diamonds, aes(carat, price)) +
+  geom_point(aes(colour = cut), alpha = 1/20) +
+  guides(colour = guide_legend(override.aes = list(size = 4, alpha = 1))) 
 
 
 ```
