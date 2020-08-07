@@ -456,8 +456,8 @@ yearBreaks4 <- lubridate:::make_date(seq(from = minYear, to = maxYear, by = 4))
     scale_colour_manual(values = c(Republican = "red", Democratic = "blue")) +
     scale_x_date(NULL, breaks = presidential$start, date_labels = "'%y") +
     
-    # Labelling each term with the name of the president
-    #geom_label(label = labels, nudge_y = 0.25, nudge_x = 20) +
+    # #Labelling each term with the name of the president
+    # geom_label(label = labels, nudge_y = 0.25, nudge_x = 20) +
     
     # Adding informative plot 
     scale_y_discrete(name = "Names of Presidents") +
